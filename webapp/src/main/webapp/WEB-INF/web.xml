@@ -203,6 +203,7 @@
 				nl.nn.adapterframework.webcontrol.api.ShowMonitors,
 				nl.nn.adapterframework.webcontrol.api.ShowAdapterStatistics,
 				nl.nn.adapterframework.webcontrol.api.ShowScheduler,
+				nl.nn.adapterframework.webcontrol.api.ShowDocumentation,
 				nl.nn.adapterframework.webcontrol.api.ShowLogging,
 				nl.nn.adapterframework.webcontrol.api.Webservices,
 				nl.nn.adapterframework.webcontrol.api.BrowseQueue,

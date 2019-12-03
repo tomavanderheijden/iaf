@@ -268,6 +268,30 @@ angular.module('iaf.beheerconsole').config(['$locationProvider', '$stateProvider
 			breadcrumbs: 'Security Items'
 		}
 	})
+	.state('pages.documentation', {
+		url: "/documentation",
+		templateUrl: "views/ShowDocumentation.html",
+		data: {
+			pageTitle: 'Documentation',
+			breadcrumbs: 'Documentation'
+		}
+	})
+	.state('pages.documentationConfiguration', {
+		url: "/documentation/configurations/:configurationName",
+		templateUrl: "views/ShowDocumentationConfiguration.html",
+		data: {
+			pageTitle: 'DocumentationConfiguration',
+			breadcrumbs: 'DocumentationConfiguration'
+		}
+	})
+	.state('pages.documentationConfigurationAdapter', {
+		url: "/documentation/configurations/:configurationName/adapters/:adapterName",
+		templateUrl: "views/ShowDocumentationConfigurationAdapter.html",
+		data: {
+			pageTitle: 'DocumentationConfigurationAdapter',
+			breadcrumbs: 'DocumentationConfigurationAdapter'
+		}
+	})
 	.state('pages.monitors', {
 		url: "/monitors",
 		templateUrl: "views/ShowMonitors.html",

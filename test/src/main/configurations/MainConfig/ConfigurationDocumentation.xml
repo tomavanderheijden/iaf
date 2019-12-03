@@ -1,0 +1,47 @@
+<Module
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="../../../tools/ibisDoc/ibisdoc.xsd">
+	<Adapter name="ConfigurationDocumentation">
+		<Documentation><![CDATA[<p style="color:red;">Hi</p>]]></Documentation>
+		<Receiver name="ConfigurationDocumentation">
+			<JavaListener name="ConfigurationDocumentation" />
+		</Receiver>
+		<Pipeline firstPipe="Testing with fixed result">
+			<FixedResultPipe
+				name="Testing with fixed result"
+				returnString="test">
+				<Forward
+					name="success"
+					path="Testing with XSLT" />
+			</FixedResultPipe>
+			<SenderPipe name="Test pipe with sender">
+				<FixedQuerySender
+					name="Select something from database"
+					query="SELECT RNUM FROM IBISSTORE"
+					datasourceName="jdbc/${instance.name.lc}">
+					<Documentation>Some extra info about this sender</Documentation>
+				</FixedQuerySender>
+			</SenderPipe>
+			<XsltPipe
+				name="Testing with XSLT"
+				styleSheetName="ConfigurationDocumentation/xsl/test.xsl"
+				getInputFromFixedValue="&lt;dummy/>">
+				<Documentation>This is some extra info about this pipe</Documentation>
+				<Forward
+					name="success"
+					path="Testing with another XSLT" />
+			</XsltPipe>
+			<XsltPipe
+				name="Testing with another XSLT"
+				styleSheetName="ConfigurationDocumentation/xsl/test2.xsl"
+				getInputFromFixedValue="&lt;dummy/>">
+				<Forward
+					name="success"
+					path="EXIT" />
+			</XsltPipe>
+			<Exit
+				path="EXIT"
+				state="success" />
+		</Pipeline>
+	</Adapter>
+</Module>

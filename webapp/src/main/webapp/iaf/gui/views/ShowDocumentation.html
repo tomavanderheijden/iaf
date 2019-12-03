@@ -1,0 +1,25 @@
+<!-- Angular ui-router hack-->
+<div ui-view></div>
+
+<div class="wrapper wrapper-content animated fadeInRight" ng-controller="DocumentationCtrl">
+	<div class="row" ng-if="state==='configurations'">
+		<div class="col-lg-12">
+			<div class="ibox float-e-margins">
+				<div class="m-t-md table-responsive">
+					<div class="ibox-title">
+						<h4>Configurations</h4>
+					</div>
+					<div class="ibox-content">
+						<table class="table">
+							<tbody>
+								<tr ng-repeat="configurationName in configurationNames">
+									<td class="pointer"><a ui-sref="pages.documentationConfiguration({configurationName:configurationName})">{{configurationName}}</a></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

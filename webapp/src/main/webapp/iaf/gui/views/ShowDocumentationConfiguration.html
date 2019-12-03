@@ -1,0 +1,28 @@
+<!-- Angular ui-router hack-->
+<div ui-view></div>
+
+<div class="wrapper wrapper-content animated fadeInRight" ng-controller="DocumentationConfigurationCtrl">
+	<div class="row">
+		<div class="col-lg-12">
+			<a ui-sref="pages.documentation" class="btn btn-primary">Back</a>
+			<div class="ibox float-e-margins">
+				<div class="m-t-md table-responsive">
+					<div class="ibox-title">
+						<h4>Adapters in {{configurationName}}</h4>
+					</div>
+					<div class="ibox-content">
+						<table class="table">
+							<tbody>
+								<tr ng-repeat="adapterName in adapterNames">
+									<td class="pointer">
+										<a ui-sref="pages.documentationConfigurationAdapter({configurationName:configurationName, adapterName:adapterName})">{{adapterName}}</a>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
