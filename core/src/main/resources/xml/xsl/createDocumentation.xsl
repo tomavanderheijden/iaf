@@ -58,6 +58,11 @@
 						<li>
 							<xsl:text>Receives message from </xsl:text>
 							<xsl:value-of select="adapter/receiver[1]/listener/@className"/>
+							<xsl:if test="count(adapter/receiver[1]/Documentation)>0">
+								<xsl:text disable-output-escaping="yes"><![CDATA[<span style="font-style: italic;">]]> --Note: </xsl:text>
+								<xsl:value-of select="adapter/receiver[1]/Documentation"/>
+								<xsl:text disable-output-escaping="yes"><![CDATA[</span>]]></xsl:text>
+							</xsl:if>
 						</li>
 						<li>
 							<xsl:value-of select="adapter/pipeline/@firstPipe"/>
