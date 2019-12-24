@@ -32,14 +32,23 @@ angular.module('iaf.beheerconsole')
 				$interval(updateTime, 1000);
 				updateTime();
 
+				$rootScope.instanceName = data.name;
 				angular.element(".iaf-info").html("IAF " + data.version + ": " + data.name );
 
-				$scope.configurations = data.configurations;
-				for(var config in $scope.configurations) {
-					if($scope.configurations[config].type == "DatabaseClassLoader") {
-						$scope.config_database = true;
-						break;
-					}
+				$rootScope.otapStage = data["otap.stage"];
+				$rootScope.otapSide = data["otap.side"];
+
+				if($rootScope.otapStage == "LOC") {
+					Debug.setLevel(3);
+				}
+
+				$scope.configurations = new Array();
+				for(var i in data.configurations) {
+					var config = data.configurations[i];
+					if(!config.name.startsWith("IAF_"))
+						$scope.configurations.unshift(config);
+					else
+						$scope.configurations.push(config);
 				}
 
 				//Was it able to retrieve the serverinfo without logging in?
@@ -59,9 +68,12 @@ angular.module('iaf.beheerconsole')
 			appConstants.init = 1;
 			Api.Get("environmentvariables", function(data) {
 				if(data["Application Constants"]) {
-					appConstants = $.extend(appConstants, data["Application Constants"]);
-					$rootScope.otapStage = appConstants["otap.stage"];
-					Hooks.call("appConstants", appConstants);
+					for (var configName in data["Application Constants"]) {
+						var configConstants = data["Application Constants"][configName];
+						appConstants = $.extend(appConstants, configConstants);
+						break;
+					}
+
 					var idleTime = (parseInt(appConstants["console.idle.time"]) > 0) ? parseInt(appConstants["console.idle.time"]) : false;
 					if(idleTime > 0) {
 						var idleTimeout = (parseInt(appConstants["console.idle.timeout"]) > 0) ? parseInt(appConstants["console.idle.timeout"]) : false;
@@ -71,9 +83,7 @@ angular.module('iaf.beheerconsole')
 					else {
 						Idle.unwatch();
 					}
-					if(appConstants["otap.stage"] == "LOC") {
-						Debug.setLevel(3);
-					}
+					$scope.databaseSchedulesEnabled = (appConstants["loadDatabaseSchedules.active"] === 'true');
 				}
 			});
 		}
@@ -491,8 +501,27 @@ angular.module('iaf.beheerconsole')
 	};
 })
 
-.controller('StatusCtrl', ['$scope', 'Hooks', 'Api', 'SweetAlert', 'Poller', '$filter', '$state', 'Misc',
-		function($scope, Hooks, Api, SweetAlert, Poller, $filter, $state, Misc) {
+.controller('StatusCtrl', ['$scope', 'Hooks', 'Api', 'SweetAlert', 'Poller', '$filter', '$state', 'Misc', '$anchorScroll', '$location',
+		function($scope, Hooks, Api, SweetAlert, Poller, $filter, $state, Misc, $anchorScroll, $location) {
+
+	var hash = $location.hash();
+	var adapterName = $state.params.adapter;
+	if(adapterName == "" && hash != "") { //If the adapter param hasn't explicitly been set
+		adapterName = hash;
+	} else {
+		$location.hash(adapterName);
+	}
+
+	$scope.showContent = function(adapter) {
+		if(adapter.status == "stopped") {
+			return true;
+		} else if(adapterName != "" && adapter.name == adapterName) {
+			$anchorScroll();
+			return true;
+		} else {
+			return false;
+		}
+	};
 
 	this.filter = {
 		"started": true,
@@ -589,6 +618,15 @@ angular.module('iaf.beheerconsole')
 		window.open(url);
 	};
 
+	$scope.isConfigStubbed = {};
+	$scope.check4StubbedConfigs = function() {
+		for(var i in $scope.configurations) {
+			var config = $scope.configurations[i];
+			$scope.isConfigStubbed[config.name] = config.stubbed;
+		}
+	};
+	$scope.$watch('configurations', $scope.check4StubbedConfigs);
+
 	$scope.changeConfiguration = function(name) {
 		$scope.selectedConfiguration = name;
 		$scope.updateAdapterSummary(name);
@@ -668,7 +706,7 @@ angular.module('iaf.beheerconsole')
 
 //** Ctrls **//
 
-.controller('ManageConfigurationDetailsCtrl', ['$scope', '$state', 'Api', 'Debug', 'Misc', '$interval', function($scope, $state, Api, Debug, Misc, $interval) {
+.controller('ManageConfigurationDetailsCtrl', ['$scope', '$state', 'Api', 'Debug', 'Misc', '$interval', 'SweetAlert', function($scope, $state, Api, Debug, Misc, $interval, SweetAlert) {
 	$scope.state = [];
 	$scope.loading = false;
 	$scope.addNote = function(type, message) {
@@ -689,7 +727,7 @@ angular.module('iaf.beheerconsole')
 	$scope.configuration = $state.params.name;
 	function update() {
 		$scope.loading = true;
-		Api.Get("configurations/"+$state.params.name+"/manage", function(data) {
+		Api.Get("configurations/"+$state.params.name+"/versions", function(data) {
 			for(x in data) {
 				var configs = data[x];
 				if(configs.active) {
@@ -703,7 +741,28 @@ angular.module('iaf.beheerconsole')
 	};
 	update();
 	$scope.download = function(config) {
-		window.open(Misc.getServerPath() + "iaf/api/configurations/"+config.name+"/download?version="+encodeURIComponent(config.version));
+		window.open(Misc.getServerPath() + "iaf/api/configurations/"+config.name+"/versions/"+encodeURIComponent(config.version)+"/download");
+	};
+	$scope.deleteConfig = function(config) {
+		var message = "";
+		if(config.version) {
+			message = "Are you sure you want to remove version '"+config.version+"'?";
+		} else {
+			message = "Are you sure?";
+		}
+		SweetAlert.Confirm({title:message}, function(imSure) {
+			if(imSure) {
+				Api.Delete("configurations/"+config.name+"/versions/"+encodeURIComponent(config.version), function() {
+					$scope.addNote("success", "Successfully removed version '"+config.version+"'");
+					update();
+				}, function(_, status, statusText) {
+					if(status == 403)
+						$scope.setNote("danger", "403 - Forbidden; you do not have enough access rights to complete this action!");
+					else
+						$scope.addNote("danger", "An error occured while attempting to remove version '"+config.version+"'. ");
+				});
+			}
+		});
 	};
 
 	$scope.activate = function(config) {
@@ -712,7 +771,7 @@ angular.module('iaf.beheerconsole')
 			if(configs.version != config.version)
 				configs.actived = false;
 		}
-		Api.Put("configurations/"+config.name+"/manage/"+encodeURIComponent(config.version), {activate:config.active}, function(data) {
+		Api.Put("configurations/"+config.name+"/versions/"+encodeURIComponent(config.version), {activate:config.active}, function(data) {
 			$scope.setNote("success", "Successfully changed startup config to version '"+config.version+"'");
 		}, function(_, status, statusText) {
 			update();
@@ -724,7 +783,7 @@ angular.module('iaf.beheerconsole')
 	};
 
 	$scope.scheduleReload = function(config) {
-		Api.Put("configurations/"+config.name+"/manage/"+encodeURIComponent(config.version), {autoreload:config.autoreload}, function(data) {
+		Api.Put("configurations/"+config.name+"/versions/"+encodeURIComponent(config.version), {autoreload:config.autoreload}, function(data) {
 			$scope.setNote("success", "Successfully "+(config.autoreload ? "enabled" : "disabled")+" Auto Reload for version '"+config.version+"'");
 		}, function(_, status, statusText) {
 			update();
@@ -873,21 +932,40 @@ angular.module('iaf.beheerconsole')
 	$scope.variables = {};
 	$scope.searchFilter = "";
 
+	$scope.selectedConfiguration = null;
+	$scope.changeConfiguration = function(name) {
+		$scope.selectedConfiguration = name;
+		$scope.configProperties = $scope.appConstants[name];
+	};
+
+	$scope.configProperties = [];
+	$scope.environmentProperties = [];
+	$scope.systemProperties = [];
+	$scope.appConstants = [];
 	Api.Get("environmentvariables", function(data) {
-		for(propertyListType in data) {
-			var propertyList = data[propertyListType];
-			var tmp = new Array();
-
-			for(variableName in propertyList) {
-				tmp.push({
-					key: variableName,
-					val: propertyList[variableName]
-				});
+		var instanceName = null;
+		for(var configName in data["Application Constants"]) {
+			$scope.appConstants[configName] = convertPropertiesToArray(data["Application Constants"][configName]);
+			if(instanceName == null) {
+				instanceName = data["Application Constants"][configName]["instance.name"];
 			}
-
-			$scope.variables[propertyListType] = tmp;
 		}
+		$scope.changeConfiguration(instanceName);
+		$scope.environmentProperties = convertPropertiesToArray(data["Environment Variables"]);
+		$scope.systemProperties = convertPropertiesToArray(data["System Properties"]);
 	});
+
+	function convertPropertiesToArray(propertyList) {
+		var tmp = new Array();
+		for(var variableName in propertyList) {
+			tmp.push({
+				key: variableName,
+				val: propertyList[variableName]
+			});
+		}
+		return tmp;
+	}
+
 	Api.Get("server/log", function(data) {
 		$scope.form = data;
 	});
@@ -897,6 +975,7 @@ angular.module('iaf.beheerconsole')
 		logIntermediaryResults: true,
 		maxMessageLength: -1,
 		errorLevels: ["DEBUG", "INFO", "WARN", "ERROR"],
+		enableDebugger: true,
 	};
 
 	$scope.changeLoglevel = function(name) {
@@ -1055,32 +1134,152 @@ angular.module('iaf.beheerconsole')
 	});
 }])
 
-.controller('SchedulerCtrl', ['$scope', 'Api', function($scope, Api) {
+.controller('SchedulerCtrl', ['$scope', 'Api', 'Poller', '$state', function($scope, Api, Poller, $state) {
 	$scope.jobs = {};
 	$scope.scheduler = {};
-	update();
 
-	function update() {
-		Api.Get("schedules", function(data) {
-			$.extend($scope, data);
-		});
-	};
+	Poller.add("schedules", function(data) {
+		$.extend($scope, data);
+	}, true, 5000);
 
 	$scope.start = function() {
-		Api.Put("schedules", {action: "start"}, update);
+		Api.Put("schedules", {action: "start"});
 	};
 
 	$scope.pause = function() {
-		Api.Put("schedules", {action: "pause"}, update);
+		Api.Put("schedules", {action: "pause"});
+	};
+
+	$scope.pause = function(jobGroup, jobName) {
+		Api.Put("schedules/"+jobGroup+"/job/"+jobName, {action: "pause"});
+	};
+
+	$scope.resume = function(jobGroup, jobName) {
+		Api.Put("schedules/"+jobGroup+"/job/"+jobName, {action: "resume"});
 	};
 
 	$scope.remove = function(jobGroup, jobName) {
-		Api.Delete("schedules/"+jobGroup+"/"+jobName, update);
+		Api.Delete("schedules/"+jobGroup+"/job/"+jobName);
 	};
 
 	$scope.trigger = function(jobGroup, jobName) {
-		Api.Put("schedules/"+jobGroup+"/"+jobName, null, update);
+		Api.Put("schedules/"+jobGroup+"/job/"+jobName, {action: "trigger"});
 	};
+
+	$scope.edit = function(jobGroup, jobName) {
+		$state.go('pages.edit_schedule', {name:jobName,group:jobGroup});
+	};
+}])
+
+.controller('AddScheduleCtrl', ['$scope', 'Api', 'Misc', function($scope, Api, Misc) {
+	$scope.state = [];
+	$scope.addAlert = function(type, message) {
+		$scope.state.push({type:type, message: message});
+	};
+
+	$scope.form = {
+			name:"",
+			adapter:"",
+			receiver:"",
+			cron:"",
+			interval:-1,
+			message:"",
+			locker:false,
+			lockkey:"",
+			persistent:true,
+	};
+
+	$scope.submit = function() {
+		var fd = new FormData();
+		$scope.state = [];
+
+		fd.append("name", $scope.form.name);
+		fd.append("adapter", $scope.form.adapter);
+		fd.append("receiver", $scope.form.receiver);
+		fd.append("cron", $scope.form.cron);
+		fd.append("interval", $scope.form.interval);
+		fd.append("persistent", $scope.form.persistent);
+		fd.append("message", $scope.form.message);
+		fd.append("locker", $scope.form.locker);
+		fd.append("lockkey", $scope.form.lockkey);
+
+		Api.Post("schedules", fd, { 'Content-Type': undefined }, function(data) {
+			$scope.addAlert("success", "Successfully added schedule!");
+			$scope.form = {
+					name:"",
+					adapter:"",
+					receiver:"",
+					cron:"",
+					interval:-1,
+					message:"",
+					locker:false,
+					lockkey:"",
+					persistent:true,
+			};
+		}, function(errorData, status, errorMsg) {
+			var error = (errorData) ? errorData.error : errorMsg;
+			$scope.addAlert("warning", error);
+		});
+	};
+
+}])
+
+.controller('EditScheduleCtrl', ['$scope', 'Api', 'Misc', '$stateParams', '$state', function($scope, Api, Misc, $stateParams, $state) {
+	$scope.state = [];
+	$scope.addAlert = function(type, message) {
+		$scope.state.push({type:type, message: message});
+	};
+	var url ="schedules/"+$stateParams.group+"/job/"+$stateParams.name;
+	$scope.editMode = true;
+
+	$scope.form = {
+			name:"",
+			adapter:"",
+			receiver:"",
+			cron:"",
+			interval:-1,
+			message:"",
+			locker:false,
+			lockkey:"",
+			persistent:true,
+	};
+
+	Api.Get(url, function(data) {
+		$scope.form = {
+				name: data.name,
+				adapter: data.adapter,
+				receiver: data.receiver,
+				cron: data.triggers[0].cronExpression,
+				interval: -1,
+				message: data.message,
+				locker: data.locker,
+				lockkey: data.lockkey,
+				persistent: true,
+		};
+	});
+
+	$scope.submit = function(form) {
+		var fd = new FormData();
+		$scope.state = [];
+
+		fd.append("name", $scope.form.name);
+		fd.append("adapter", $scope.form.adapter);
+		fd.append("receiver", $scope.form.receiver);
+		fd.append("cron", $scope.form.cron);
+		fd.append("interval", $scope.form.interval);
+		fd.append("persistent", $scope.form.persistent);
+		fd.append("message", $scope.form.message);
+		fd.append("locker", $scope.form.locker);
+		fd.append("lockkey", $scope.form.lockkey);
+
+		Api.Put(url, fd, function(data) {
+			$scope.addAlert("success", "Successfully edited schedule!");
+		}, function(errorData, status, errorMsg) {
+			var error = (errorData) ? errorData.error : errorMsg;
+			$scope.addAlert("warning", error);
+		});
+	};
+
 }])
 
 .controller('LoggingCtrl', ['$scope', 'Api', 'Misc', '$timeout', '$state','$stateParams', function($scope, Api, Misc, $timeout, $state, $stateParams) {

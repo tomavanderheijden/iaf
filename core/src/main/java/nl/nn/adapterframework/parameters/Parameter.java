@@ -1,5 +1,5 @@
 /*
-   Copyright 2013, 2016 Nationale-Nederlanden
+   Copyright 2013, 2016, 2019 Nationale-Nederlanden
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.configuration.ConfigurationUtils;
@@ -46,6 +47,7 @@ import nl.nn.adapterframework.core.IWithParameters;
 import nl.nn.adapterframework.core.ParameterException;
 import nl.nn.adapterframework.doc.IbisDoc;
 import nl.nn.adapterframework.pipes.PutSystemDateInSession;
+import nl.nn.adapterframework.stream.Message;
 import nl.nn.adapterframework.util.ClassUtils;
 import nl.nn.adapterframework.util.DateUtils;
 import nl.nn.adapterframework.util.DomBuilderException;
@@ -90,7 +92,7 @@ import nl.nn.adapterframework.util.XmlUtils;
  */
 public class Parameter implements INamedObject, IWithParameters {
 	protected Logger log = LogUtil.getLogger(this);
-	private ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+	private ClassLoader configurationClassLoader = Thread.currentThread().getContextClassLoader();
 
 	public final static String TYPE_XML="xml";
 	public final static String TYPE_NODE="node";
@@ -154,33 +156,33 @@ public class Parameter implements INamedObject, IWithParameters {
 		paramList.add(p);
 	}
 
+	@Override
+	public ParameterList getParameterList() {
+		return paramList;
+	}
 	public void configure() throws ConfigurationException {
-		if (StringUtils.isNotEmpty(getSessionKey()) && 
-			    StringUtils.isNotEmpty(getSessionKeyXPath())) {
+		if (StringUtils.isNotEmpty(getSessionKey()) && StringUtils.isNotEmpty(getSessionKeyXPath())) {
 			throw new ConfigurationException("Parameter ["+getName()+"] cannot have both sessionKey and sessionKeyXPath specified");
 		}
-		if (StringUtils.isNotEmpty(getXpathExpression()) || 
-		    StringUtils.isNotEmpty(styleSheetName)) {
+		if (StringUtils.isNotEmpty(getXpathExpression()) || StringUtils.isNotEmpty(styleSheetName)) {
 			if (paramList!=null) {
 				paramList.configure();
 			}
-			String outputType=TYPE_XML.equalsIgnoreCase(getType()) ||
-							  TYPE_NODE.equalsIgnoreCase(getType()) || 
-							  TYPE_DOMDOC.equalsIgnoreCase(getType())?"xml":"text";
+			String outputType=TYPE_XML.equalsIgnoreCase(getType()) || TYPE_NODE.equalsIgnoreCase(getType()) || TYPE_DOMDOC.equalsIgnoreCase(getType())?"xml":"text";
 			boolean includeXmlDeclaration=false;
 			
-			transformerPool=TransformerPool.configureTransformer0("Parameter ["+getName()+"] ",classLoader,getNamespaceDefs(),getXpathExpression(), styleSheetName,outputType,includeXmlDeclaration,paramList,getXsltVersion());
-	    } else {
+			transformerPool=TransformerPool.configureTransformer0("Parameter ["+getName()+"] ",configurationClassLoader,getNamespaceDefs(),getXpathExpression(), styleSheetName,outputType,includeXmlDeclaration,paramList,getXsltVersion());
+		} else {
 			if (paramList!=null && StringUtils.isEmpty(getXpathExpression())) {
 				throw new ConfigurationException("Parameter ["+getName()+"] can only have parameters itself if a styleSheetName or xpathExpression is specified");
 			}
-	    }
+		}
 		if (isRemoveNamespaces()) {
 			transformerPoolRemoveNamespaces = XmlUtils.getRemoveNamespacesTransformerPool(true,false);
 		}
 		if (StringUtils.isNotEmpty(getSessionKeyXPath())) {
-			transformerPoolSessionKey = TransformerPool.configureTransformer("SessionKey for parameter ["+getName()+"] ", classLoader, getNamespaceDefs(), getSessionKeyXPath(), null,"text",false,null);
-	    }
+			transformerPoolSessionKey = TransformerPool.configureTransformer("SessionKey for parameter ["+getName()+"] ", configurationClassLoader, getNamespaceDefs(), getSessionKeyXPath(), null,"text",false,null);
+		}
 		if (TYPE_DATE.equals(getType()) && StringUtils.isEmpty(getFormatString())) {
 			setFormatString(TYPE_DATE_PATTERN);
 		}
@@ -245,7 +247,18 @@ public class Parameter implements INamedObject, IWithParameters {
 		} 
 		return pool.transform(xmlSource,prc.getValueMap(paramList));
 	}
-
+	
+	public boolean requiresInputValueForResolution() {
+		if (transformerPoolSessionKey != null) { //TODO: Check if this clause needs to go after the next one. Having a transformerpool on itself doesn't make it necessary to have the input.
+			return true;
+		}
+		if ((StringUtils.isNotEmpty(getSessionKey()) || StringUtils.isNotEmpty(getValue()) || StringUtils.isNotEmpty(getPattern()))
+				&& (StringUtils.isEmpty(getDefaultValueMethods()) || !getDefaultValueMethods().contains("input"))) {
+			return false;
+		}
+		return true;
+	}
+ 
 	/**
 	 * determines the raw value 
 	 */
@@ -256,17 +269,17 @@ public class Parameter implements INamedObject, IWithParameters {
 			throw new ParameterException("Parameter ["+getName()+"] not configured");
 		}
 		
-		String retrievedSessionKey;
+		String requestedSessionKey;
 		if (transformerPoolSessionKey != null) {
 			try {
-				retrievedSessionKey = transformerPoolSessionKey.transform(prc.getInput(), null);
+				requestedSessionKey = transformerPoolSessionKey.transform(prc.getMessage().asSource(), null);
 			} catch (Exception e) {
 				throw new ParameterException("SessionKey for parameter ["+getName()+"] exception on transformation to get name", e);
 			}
 		} else {
-			retrievedSessionKey = getSessionKey();
+			requestedSessionKey = getSessionKey();
 		}
-		
+		Message message = prc.getMessage();
 		TransformerPool pool = getTransformerPool();
 		if (pool != null) {
 			try {
@@ -274,11 +287,10 @@ public class Parameter implements INamedObject, IWithParameters {
 				Source source=null;
 				if (StringUtils.isNotEmpty(getValue())) {
 					source = XmlUtils.stringToSourceForSingleUse(getValue(), prc.isNamespaceAware());
-				} else if (StringUtils.isNotEmpty(retrievedSessionKey)) {
+				} else if (StringUtils.isNotEmpty(requestedSessionKey)) {
 					String sourceString;
-					Object sourceObject = prc.getSession().get(retrievedSessionKey);
-					if (TYPE_LIST.equals(getType())
-							&& sourceObject instanceof List) {
+					Object sourceObject = prc.getSession().get(requestedSessionKey);
+					if (TYPE_LIST.equals(getType())	&& sourceObject instanceof List) {
 						List<String> items = (List<String>) sourceObject;
 						XmlBuilder itemsXml = new XmlBuilder("items");
 						for (Iterator<String> it = items.iterator(); it.hasNext();) {
@@ -288,8 +300,7 @@ public class Parameter implements INamedObject, IWithParameters {
 							itemsXml.addSubElement(itemXml);
 						}
 						sourceString = itemsXml.toXML();
-					} else if (TYPE_MAP.equals(getType())
-								&& sourceObject instanceof Map) {
+					} else if (TYPE_MAP.equals(getType()) && sourceObject instanceof Map) {
 						Map<String, String> items = (Map<String, String>) sourceObject;
 						XmlBuilder itemsXml = new XmlBuilder("items");
 						for (Iterator<String> it = items.keySet().iterator(); it.hasNext();) {
@@ -304,10 +315,10 @@ public class Parameter implements INamedObject, IWithParameters {
 						sourceString = (String) sourceObject;
 					}
 					if (StringUtils.isNotEmpty(sourceString)) {
-						log.debug("Parameter ["+getName()+"] using sessionvariable ["+retrievedSessionKey+"] as source for transformation");
+						log.debug("Parameter ["+getName()+"] using sessionvariable ["+requestedSessionKey+"] as source for transformation");
 						source = XmlUtils.stringToSourceForSingleUse(sourceString, prc.isNamespaceAware());
 					} else {
-						log.debug("Parameter ["+getName()+"] sessionvariable ["+retrievedSessionKey+"] empty, no transformation will be performed");
+						log.debug("Parameter ["+getName()+"] sessionvariable ["+requestedSessionKey+"] empty, no transformation will be performed");
 					}
 				} else if (StringUtils.isNotEmpty(getPattern())) {
 					String sourceString = format(alreadyResolvedParameters, prc);
@@ -318,7 +329,7 @@ public class Parameter implements INamedObject, IWithParameters {
 						log.debug("Parameter ["+getName()+"] pattern ["+getPattern()+"] empty, no transformation will be performed");
 					}
 				} else {
-					source = prc.getInputSource();
+					source = message.asSource();
 				}
 				if (source!=null) {
 					if (transformerPoolRemoveNamespaces != null) {
@@ -334,14 +345,19 @@ public class Parameter implements INamedObject, IWithParameters {
 				throw new ParameterException("Parameter ["+getName()+"] exception on transformation to get parametervalue", e);
 			}
 		} else {
-			if (StringUtils.isNotEmpty(retrievedSessionKey)) {
-				result=prc.getSession().get(retrievedSessionKey);
+			if (StringUtils.isNotEmpty(requestedSessionKey)) {
+				result=prc.getSession().get(requestedSessionKey);
 			} else if (StringUtils.isNotEmpty(getPattern())) {
 				result=format(alreadyResolvedParameters, prc);
 			} else if (StringUtils.isNotEmpty(getValue())) {
 				result = getValue();
 			} else {
-				result=prc.getInput();
+				try {
+					message.preserve();
+					result=message.asString();
+				} catch (IOException e) {
+					throw new ParameterException(e);
+				}
 			}
 		}
 		if (result != null) {
@@ -356,16 +372,23 @@ public class Parameter implements INamedObject, IWithParameters {
 				if ("defaultValue".equals(token)) {
 					result = getDefaultValue();
 				} else if ("sessionKey".equals(token)) {
-					result = prc.getSession().get(retrievedSessionKey);
+					result = prc.getSession().get(requestedSessionKey);
 				} else if ("pattern".equals(token)) {
 					result = format(alreadyResolvedParameters, prc);
 				} else if ("value".equals(token)) {
 					result = getValue();
 				} else if ("input".equals(token)) {
-					result = prc.getInput();
+					try {
+						message.preserve();
+						result=message.asString();
+					} catch (IOException e) {
+						throw new ParameterException(e);
+					}
 				}
 			}
-			log.debug("Parameter ["+getName()+"] resolved to defaultvalue ["+(isHidden()?hide(result.toString()):result)+"]");
+			if (result!=null) {
+				log.debug("Parameter ["+getName()+"] resolved to defaultvalue ["+(isHidden()?hide(result.toString()):result)+"]");
+			}
 		}
 		if (result !=null && result instanceof String) {
 			if (getMinLength()>=0 && !TYPE_NUMBER.equals(getType())) {
@@ -382,17 +405,23 @@ public class Parameter implements INamedObject, IWithParameters {
 			}
 			if (TYPE_NODE.equals(getType())) {
 				try {
+					if (transformerPoolRemoveNamespaces != null) {
+						result = transformerPoolRemoveNamespaces.transform((String)result, null);
+					}
 					result=XmlUtils.buildNode((String)result,prc. isNamespaceAware());
 					if (log.isDebugEnabled()) log.debug("final result ["+result.getClass().getName()+"]["+result+"]");
-				} catch (DomBuilderException e) {
+				} catch (DomBuilderException | TransformerException | IOException | SAXException e) {
 					throw new ParameterException("Parameter ["+getName()+"] could not parse result ["+result+"] to XML nodeset",e);
 				}
 			}
 			if (TYPE_DOMDOC.equals(getType())) {
 				try {
+					if (transformerPoolRemoveNamespaces != null) {
+						result = transformerPoolRemoveNamespaces.transform((String)result, null);
+					}
 					result=XmlUtils.buildDomDocument((String)result,prc.isNamespaceAware());
 					if (log.isDebugEnabled()) log.debug("final result ["+result.getClass().getName()+"]["+result+"]");
-				} catch (DomBuilderException e) {
+				} catch (DomBuilderException | TransformerException | IOException | SAXException e) {
 					throw new ParameterException("Parameter ["+getName()+"] could not parse result ["+result+"] to XML document",e);
 				}
 			}
@@ -530,7 +559,7 @@ public class Parameter implements INamedObject, IWithParameters {
 			} else if ("hostname".equals(name.toLowerCase())) {
 				substitutionValue = Misc.getHostname();
 			} else if ("fixeddate".equals(name.toLowerCase())) {
-				if (!ConfigurationUtils.stubConfiguration()) {
+				if (!ConfigurationUtils.isConfigurationStubbed(configurationClassLoader)) {
 					throw new ParameterException("Parameter pattern [" + name + "] only allowed in stub mode");
 				}
 				Date d;
@@ -546,12 +575,12 @@ public class Parameter implements INamedObject, IWithParameters {
 				}
 				substitutionValue = d;
 			} else if ("fixeduid".equals(name.toLowerCase())) {
-				if (!ConfigurationUtils.stubConfiguration()) {
+				if (!ConfigurationUtils.isConfigurationStubbed(configurationClassLoader)) {
 					throw new ParameterException("Parameter pattern [" + name + "] only allowed in stub mode");
 				}
 				substitutionValue = FIXEDUID;
 			} else if ("fixedhostname".equals(name.toLowerCase())) {
-				if (!ConfigurationUtils.stubConfiguration()) {
+				if (!ConfigurationUtils.isConfigurationStubbed(configurationClassLoader)) {
 					throw new ParameterException("Parameter pattern [" + name + "] only allowed in stub mode");
 				}
 				substitutionValue = FIXEDHOSTNAME;
@@ -596,10 +625,10 @@ public class Parameter implements INamedObject, IWithParameters {
 		return transformerPool;
 	}
 
-	@IbisDoc({"key of a pipelinesession-variable. is specified, the value of the pipelinesession variable is used as input for "+ 
-		"the xpathexpression or stylesheet, instead of the current input message. if no xpathexpression or stylesheet are "+ 
-		"specified, the value itself is returned. if the value '*' is specified, all existing sessionkeys are added as "+ 
-		"parameter of which the name starts with the name of this parameter. if also the name of the parameter has the "+ 
+	@IbisDoc({"key of a pipelinesession-variable. If specified, the value of the pipelinesession variable is used as input for "+ 
+		"the xpathexpression or stylesheet, instead of the current input message. If no xpathexpression or stylesheet are "+ 
+		"specified, the value itself is returned. If the value '*' is specified, all existing sessionkeys are added as "+ 
+		"parameter of which the name starts with the name of this parameter. If also the name of the parameter has the "+ 
 		"value '*' then all existing sessionkeys are added as parameter (except tsreceived)", ""})
 	public void setSessionKey(String string) {
 		sessionKey = string;
@@ -702,8 +731,8 @@ public class Parameter implements INamedObject, IWithParameters {
 	/**
 	 * @param string with pattern to be used, follows MessageFormat syntax with named parameters
 	 */
-	@IbisDoc({"value of parameter is determined using substitution and formating. the expression can contain references "+ 
-		"to session-variables or other parameters using {name-of-parameter} and is formatted using java.text.messageformat. "+ 
+	@IbisDoc({"Value of parameter is determined using substitution and formating. The expression can contain references "+ 
+		"to session-variables or other parameters using {name-of-parameter} and is formatted using java.text.MessageFormat. "+ 
 		"{now}, {uid}, {uuid}, {hostname} and {fixeddate} are named constants that can be used in the expression. "+ 
 		"If fname is a parameter or session variable that resolves to eric, then the pattern 'hi {fname}, hoe gaat het?' "+ 
 		"resolves to 'hi eric, hoe gaat het?'. a guid can be generated using {hostname}_{uid}, see also "+ 
