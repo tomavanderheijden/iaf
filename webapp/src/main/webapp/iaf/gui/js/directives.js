@@ -27,7 +27,7 @@ angular.module('iaf.beheerconsole')
 					element.text(stateBreadcrumbs);
 				});
 			};
-			$rootScope.$on('$stateChangeStart', listener);
+			$rootScope.$on('$stateChangeSuccess', listener);
 			$rootScope.$watch('instanceName', function() {
 				listener(null, $state.current);
 			});
@@ -65,7 +65,7 @@ angular.module('iaf.beheerconsole')
 					element.text(title);
 				});
 			};
-			$rootScope.$on('$stateChangeStart', listener);
+			$rootScope.$on('$stateChangeSuccess', listener);
 			$rootScope.$watch('instanceName', function() {
 				listener(null, $state.current);
 			});
