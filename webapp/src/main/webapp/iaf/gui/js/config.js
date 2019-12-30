@@ -300,16 +300,16 @@ angular.module('iaf.beheerconsole').config(['$locationProvider', '$stateProvider
 		url: "/documentation/configurations/:configurationName",
 		templateUrl: "views/ShowDocumentationConfiguration.html",
 		data: {
-			pageTitle: 'DocumentationConfiguration',
 			breadcrumbs: 'DocumentationConfiguration'
+			pageTitle: 'Documentation :configurationName',
 		}
 	})
 	.state('pages.documentationConfigurationAdapter', {
 		url: "/documentation/configurations/:configurationName/adapters/:adapterName",
 		templateUrl: "views/ShowDocumentationConfigurationAdapter.html",
 		data: {
-			pageTitle: 'DocumentationConfigurationAdapter',
 			breadcrumbs: 'DocumentationConfigurationAdapter'
+			pageTitle: 'Documentation :configurationName :adapterName',
 		}
 	})
 	.state('pages.monitors', {
