@@ -5,7 +5,27 @@ angular.module('iaf.beheerconsole')
 		link: function(scope, element) {
 			var listener = function(_, toState) {
 				var title = 'Loading...'; // Default title
-				if (toState.data && toState.data.pageTitle && $rootScope.instanceName) title = $rootScope.otapStage +'-'+$rootScope.instanceName+' | '+toState.data.pageTitle;
+				
+				if (toState.data && toState.data.pageTitle && $rootScope.instanceName){
+					var stateTitle = toState.data.pageTitle;
+					
+					// Are $state params used in stateTitle?
+					if(stateTitle.indexOf(":") > -1){
+						var stateTitleParts = stateTitle.split(" ");
+						
+						// Find used $state params in stateTitle and resolve it's value from $state.params
+						for(var i = 0; i < stateTitleParts.length; i++) {
+							if(stateTitleParts[i].charAt(0) === ":" && $state.params[stateTitleParts[i].substr(1)] !== undefined) {
+								stateTitleParts[i] = $state.params[stateTitleParts[i].substr(1)];
+						    }
+						}
+						
+						// Reconstruct stateTitle
+						stateTitle = stateTitleParts.join(" ");
+					}
+					
+					title = $rootScope.otapStage +'-'+$rootScope.instanceName+' | '+stateTitle;
+				}
 				$timeout(function() {
 					element.text(title);
 				});
