@@ -1,9 +1,7 @@
 <div ng-controller="InfoBarCtrl" class="row wrapper border-bottom white-bg page-heading">
     <div class="col-sm-8">
         <ol class="breadcrumb">
-            <li class="active">
-                <strong>{{$state.current.data.breadcrumbs}}</strong>
-            </li>
+            <li class="active" id="breadcrumbs" bread-crumbs>{{$state.current.data.breadcrumbs}}</li>
         </ol>
     </div>
     <div class="col-sm-4">

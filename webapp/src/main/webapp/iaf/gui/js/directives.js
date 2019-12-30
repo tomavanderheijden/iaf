@@ -1,5 +1,40 @@
 angular.module('iaf.beheerconsole')
 
+.directive('breadCrumbs', ['$rootScope', '$timeout', '$state', function($rootScope, $timeout, $state) {
+	return {
+		link: function(scope, element) {
+			var listener = function(_, toState) {
+				if (toState.data && toState.data.breadcrumbs){
+					var stateBreadcrumbs = toState.data.breadcrumbs;
+					
+					// Are $state params used in stateBreadcrumbs?
+					console.log($state.params);
+					if(stateBreadcrumbs.indexOf(":") > -1){
+						var stateBreadcrumbsParts = stateBreadcrumbs.split(" ");
+						
+						// Find used $state params in stateBreadcrumbs and resolve it's value from $state.params
+						for(var i = 0; i < stateBreadcrumbsParts.length; i++) {
+							if(stateBreadcrumbsParts[i].charAt(0) === ":" && $state.params[stateBreadcrumbsParts[i].substr(1)] !== undefined) {
+								stateBreadcrumbsParts[i] = $state.params[stateBreadcrumbsParts[i].substr(1)];
+						    }
+						}
+						
+						// Reconstruct stateBreadcrumbs
+						stateBreadcrumbs = stateBreadcrumbsParts.join(" ");
+					}
+				}
+				$timeout(function() {
+					element.text(stateBreadcrumbs);
+				});
+			};
+			$rootScope.$on('$stateChangeStart', listener);
+			$rootScope.$watch('instanceName', function() {
+				listener(null, $state.current);
+			});
+		}
+	};
+}])
+
 .directive('pageTitle', ['$rootScope', '$timeout', '$state', function($rootScope, $timeout, $state) {
 	return {
 		link: function(scope, element) {

@@ -6940,3 +6940,6 @@ body.body-small .vote-icon {
 .text-center {
   text-align: center;
 }
+#breadcrumbs {
+	font-weight: bold;
+}
