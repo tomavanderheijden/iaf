@@ -1747,8 +1747,9 @@ angular.module('iaf.beheerconsole')
 	});
 }])
 
-.controller('DocumentationConfigurationAdapterCtrl', ['$scope', 'Api', '$stateParams', '$sce', function($scope, Api, $stateParams, $sce) {
+.controller('DocumentationConfigurationAdapterCtrl', ['$scope', 'Api', '$stateParams', '$sce', 'Misc', function($scope, Api, $stateParams, $sce, Misc) {
+	var serverPath = Misc.getServerPath();
 	$scope.configurationName = $stateParams.configurationName;
 	$scope.adapterName = $stateParams.adapterName;
-	$scope.url = $sce.trustAsResourceUrl('/iaf-test/iaf/api/documentation/configurations/' + $scope.configurationName + '/adapters/' + $scope.adapterName);
+	$scope.url = $sce.trustAsResourceUrl(serverPath + 'iaf/api/documentation/configurations/' + $scope.configurationName + '/adapters/' + $scope.adapterName);
 }]);
