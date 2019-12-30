@@ -8,7 +8,6 @@ angular.module('iaf.beheerconsole')
 					var stateBreadcrumbs = toState.data.breadcrumbs;
 					
 					// Are $state params used in stateBreadcrumbs?
-					console.log($state.params);
 					if(stateBreadcrumbs.indexOf(":") > -1){
 						var stateBreadcrumbsParts = stateBreadcrumbs.split(" ");
 						
