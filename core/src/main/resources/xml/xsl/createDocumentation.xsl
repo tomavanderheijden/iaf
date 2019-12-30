@@ -9,25 +9,27 @@
 		<html>
 			<head>
 				<style> 
-					body{ 
+					body { 
 						font-family: helvetica;
 					}
-					h1{
+					h1 {
 						margin: 60px;
 						page-break-after: always;
 					}
-					h1, h2{
+					h1, h2 {
 						text-align: center;
 						color: #0768C9;
 					}
-					.bold{
+					.bold {
 						font-weight: bold;
 					} 
-					.chapter{ 
-						margin: auto;
-						width: 750px;
-						page-break-after: always;
-					}
+					.chapter { 
+		                margin: auto;
+		                width: 750px;
+		            }
+		            .chapter:not(:last-child) {
+		                page-break-after: always;                    
+		            }
 				</style>
 			</head>
 			<body>
