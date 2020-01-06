@@ -30,12 +30,21 @@
 		            .chapter:not(:last-child) {
 		                page-break-after: always;                    
 		            }
+		            .description { 
+		            	text-align: center;
+		            	margin: 15px auto 45px;
+		            }
 				</style>
 			</head>
 			<body>
 				<h1>
 					<xsl:value-of select="adapter/@name" />
 				</h1>
+				<xsl:if test="adapter/@description">
+					<div class="description">
+						<i><xsl:value-of select="adapter/@description" /></i>				
+					</div>
+				</xsl:if>
 				<h2>Adapter info</h2>
 				<div class="chapter">
 					<p>
