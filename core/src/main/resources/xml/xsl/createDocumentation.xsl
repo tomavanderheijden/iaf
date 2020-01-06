@@ -73,6 +73,10 @@
 						<xsl:value-of select="adapter/Documentation" disable-output-escaping="yes"/>
 					</div>
 				</div>
+				<h2>Receivers</h2>	
+				<div class="chapter">
+					<xsl:apply-templates select="adapter/receiver"></xsl:apply-templates>
+				</div>
 				<h2>Flows</h2>
 				<div class="chapter">
 					<h3>Flow 1</h3>
@@ -187,6 +191,51 @@
 				<xsl:with-param name="forwardPath" select="adapter/pipeline/pipe[@name=$forwardPath]/forward[1]/@path"/>
 			</xsl:call-template>
 		</xsl:if>
+	</xsl:template>
+
+	<xsl:template match="receiver">
+		<h3><xsl:value-of select="@name"/></h3>
+		<p>
+			Receives messages over <i><xsl:value-of select="tokenize(listener/@className,'\.')[last()]"/></i>.	
+			<xsl:apply-templates select="listener"></xsl:apply-templates>
+		</p>
+		<xsl:if test="count(messageLog) > 0">
+			<p>Has message log of type <i><xsl:value-of select="tokenize(messageLog/@className,'\.')[last()]"/></i> writing to slotId <i><xsl:value-of select="messageLog/@slotId"/></i>.</p>
+		</xsl:if>
+		<xsl:if test="count(errorStorage) > 0">
+			<p>Has error storage of type <i><xsl:value-of select="tokenize(errorStorage/@className,'\.')[last()]"/></i> writing to slotId <i><xsl:value-of select="errorStorage/@slotId"/></i>.</p>
+		</xsl:if>
+		<xsl:if test="count(Documentation) > 0">
+			<p>
+				<xsl:text disable-output-escaping="yes"><![CDATA[<span style="font-style: italic;">]]> --Note: </xsl:text>
+				<xsl:value-of select="Documentation"/>
+				<xsl:text disable-output-escaping="yes"><![CDATA[</span>]]></xsl:text>
+			</p>
+		</xsl:if>
+	</xsl:template>
+	
+	<xsl:template match="listener">
+		<xsl:choose>
+			<xsl:when test="@className = 'nl.nn.adapterframework.http.rest.ApiListener'">
+				<xsl:variable name="consumes">
+					<xsl:choose>
+						<xsl:when test="string-length(@consumes) = 0">*/*</xsl:when>
+						<xsl:otherwise><xsl:value-of select="@consumes"/></xsl:otherwise>
+					</xsl:choose>
+				</xsl:variable>
+				<xsl:variable name="produces">
+					<xsl:choose>
+						<xsl:when test="string-length(@produces) = 0">*/*</xsl:when>
+						<xsl:otherwise><xsl:value-of select="@produces"/></xsl:otherwise>
+					</xsl:choose>
+				</xsl:variable>
+				<ul>
+					<li>Listens for <i><xsl:value-of select="@method"/></i> messages at URI pattern <i>/<xsl:value-of select="@uriPattern"/></i></li>
+					<li>Input format is <i><xsl:value-of select="$consumes"/></i></li>
+					<li>Output format is <i><xsl:value-of select="$produces"/></i></li>
+				</ul>
+			</xsl:when>
+		</xsl:choose>
 	</xsl:template>
 		
 	<xsl:template name="documents">
