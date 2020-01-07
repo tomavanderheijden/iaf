@@ -197,7 +197,7 @@
 	
 	<xsl:template match="Documentation">
 		<xsl:text disable-output-escaping="yes"><![CDATA[<span style="font-style: italic;">]]> --Note: </xsl:text>
-		<xsl:value-of select="Documentation" disable-output-escaping="yes"/>
+		<xsl:value-of select="." disable-output-escaping="yes"/>
 		<xsl:text disable-output-escaping="yes"><![CDATA[</span>]]></xsl:text>
 	</xsl:template>
 
