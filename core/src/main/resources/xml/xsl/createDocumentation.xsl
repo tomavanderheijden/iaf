@@ -115,6 +115,9 @@
 					<xsl:for-each-group select="adapter/pipeline/pipe/@schema" group-by=".">
 						<xsl:call-template name="documents"/>
 					</xsl:for-each-group>
+					<xsl:for-each-group select="adapter/pipeline/pipe/@serviceSelectionStylesheetFilename" group-by=".">
+						<xsl:call-template name="documents"/>
+					</xsl:for-each-group>
 				</div>
 				<h2>Connections</h2>
 				<div class="chapter">
