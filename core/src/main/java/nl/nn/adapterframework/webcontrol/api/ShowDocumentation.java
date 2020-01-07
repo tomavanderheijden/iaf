@@ -15,7 +15,10 @@ limitations under the License.
 */
 package nl.nn.adapterframework.webcontrol.api;
 
-import java.io.StringWriter;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.XMLReader;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,15 +29,18 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 
 import nl.nn.adapterframework.configuration.Configuration;
+import nl.nn.adapterframework.configuration.ConfigurationException;
 import nl.nn.adapterframework.core.IAdapter;
+import nl.nn.adapterframework.stream.Message;
+import nl.nn.adapterframework.stream.MessageOutputStream;
+import nl.nn.adapterframework.stream.MessageOutputStreamCap;
+import nl.nn.adapterframework.stream.StreamingException;
 import nl.nn.adapterframework.util.XmlUtils;
+import nl.nn.adapterframework.xml.TransformerFilter;
+import nl.nn.adapterframework.xml.XmlWriter;
+import nl.nn.adapterframework.util.TransformerPool;
 
 /**
  * Retrieves the documentation.
@@ -45,6 +51,18 @@ import nl.nn.adapterframework.util.XmlUtils;
 
 @Path("/")
 public final class ShowDocumentation extends Base {
+	private String styleSheetName = "xml/xsl/createDocumentation.xsl";
+	
+	private TransformerPool transformerPool;
+	
+	public ShowDocumentation() {
+		try {
+			transformerPool = TransformerPool.configureTransformer0(null, this.getClass().getClassLoader(), null, null, styleSheetName, null, false, null, 0);
+		} catch (ConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	@GET
 	@RolesAllowed({"IbisObserver", "IbisDataAdmin", "IbisAdmin", "IbisTester"})
@@ -82,17 +100,59 @@ public final class ShowDocumentation extends Base {
 	@Relation("documentation")
 	@Produces(MediaType.TEXT_HTML)
 	public Response getDocumentationConfigurationAdapter(@PathParam("configuration") String configurationName, @PathParam("adapter") String adapterName) {
-		StringWriter writer = new StringWriter();
-        StreamResult outputTarget = new StreamResult(writer);
-        
 		try {
-			TransformerFactory factory = TransformerFactory.newInstance();
-			Transformer transformer = factory.newTransformer(new StreamSource(this.getClass().getClassLoader().getResourceAsStream("xml/xsl/createDocumentation.xsl")));
-			Source xmlSource = XmlUtils.stringToSource(getIbisManager().getConfiguration(configurationName).getRegisteredAdapter(adapterName).getAdapterConfigurationAsString());
-            transformer.transform(xmlSource, outputTarget);
-			return Response.status(Response.Status.OK).entity(writer.toString()).build();
+			transformerPool.open();
+			
+			MessageOutputStream target = new MessageOutputStreamCap();
+			Message message = new Message(getIbisManager().getConfiguration(configurationName).getRegisteredAdapter(adapterName).getAdapterConfigurationAsString());
+			ContentHandler handler = createHandler(message, target);
+			InputSource source = message.asInputSource();
+			XMLReader reader = XmlUtils.getXMLReader(true, false, handler);
+			reader.parse(source);
+			
+			transformerPool.close();
+			
+			return Response.status(Response.Status.OK).entity(target.getResponse().toString()).build();
 		} catch (Exception e) {
 			return Response.status(Response.Status.OK).entity("ERROR: could not get adapter! " + e).build();
 		}
 	}	
+
+	
+	private ContentHandler createHandler(Message input, MessageOutputStream target) throws StreamingException {
+		ContentHandler handler = null;
+
+		try {
+			TransformerPool poolToUse = transformerPool;
+			String outputType = "xml";
+			Object targetStream = target.asNative();		
+			
+			if (targetStream instanceof ContentHandler) {
+				handler = (ContentHandler)targetStream;
+			} else {
+				XmlWriter xmlWriter = new XmlWriter(target.asWriter());
+				if ("xml".equals(outputType)) {			
+					Boolean omitXmlDeclaration = poolToUse.getOmitXmlDeclaration();
+					if (omitXmlDeclaration == null) {
+						omitXmlDeclaration = false;
+					}
+					
+					xmlWriter.setIncludeXmlDeclaration(!omitXmlDeclaration);
+				} 
+				handler = xmlWriter;
+			}
+			
+			TransformerFilter mainFilter = poolToUse.getTransformerFilter(null, null, null, false);
+			XmlUtils.setTransformerParameters(mainFilter.getTransformer(),null);
+			mainFilter.setContentHandler(handler);
+			handler = mainFilter;
+	
+			return handler;
+		} catch (Exception e) {
+			log.warn("intermediate exception logging",e);
+			
+			return null;
+		} 
+	}
+
 }
