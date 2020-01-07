@@ -124,33 +124,25 @@ public final class ShowDocumentation extends Base {
 
 		try {
 			TransformerPool poolToUse = transformerPool;
-			String outputType = "xml";
-			Object targetStream = target.asNative();		
-			
-			if (targetStream instanceof ContentHandler) {
-				handler = (ContentHandler)targetStream;
-			} else {
-				XmlWriter xmlWriter = new XmlWriter(target.asWriter());
-				if ("xml".equals(outputType)) {			
-					Boolean omitXmlDeclaration = poolToUse.getOmitXmlDeclaration();
-					if (omitXmlDeclaration == null) {
-						omitXmlDeclaration = false;
-					}
-					
-					xmlWriter.setIncludeXmlDeclaration(!omitXmlDeclaration);
-				} 
-				handler = xmlWriter;
+				
+			XmlWriter xmlWriter = new XmlWriter(target.asWriter());		
+			Boolean omitXmlDeclaration = poolToUse.getOmitXmlDeclaration();
+			if (omitXmlDeclaration == null) {
+				omitXmlDeclaration = false;
 			}
 			
+			xmlWriter.setIncludeXmlDeclaration(!omitXmlDeclaration);
+			
+			handler = xmlWriter;
+			
 			TransformerFilter mainFilter = poolToUse.getTransformerFilter(null, null, null, false);
-			XmlUtils.setTransformerParameters(mainFilter.getTransformer(),null);
 			mainFilter.setContentHandler(handler);
+			
 			handler = mainFilter;
 	
 			return handler;
 		} catch (Exception e) {
 			log.warn("intermediate exception logging",e);
-			
 			return null;
 		} 
 	}
