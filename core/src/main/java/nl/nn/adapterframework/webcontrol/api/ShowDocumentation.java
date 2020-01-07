@@ -47,7 +47,6 @@ import nl.nn.adapterframework.util.XmlUtils;
 
 @Path("/")
 public final class ShowDocumentation extends Base {
-	@Context ServletConfig servletConfig;
 
 	@GET
 	@RolesAllowed({"IbisObserver", "IbisDataAdmin", "IbisAdmin", "IbisTester"})
@@ -55,10 +54,9 @@ public final class ShowDocumentation extends Base {
 	@Relation("documentation")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getDocumentationConfigurations() {
-		initBase(servletConfig);
 		List<String> list = new ArrayList<>();
 		
-		for (Configuration configuration : ibisManager.getConfigurations()) {
+		for (Configuration configuration : getIbisManager().getConfigurations()) {
 			list.add(configuration.getName());
 		}
 		
@@ -71,10 +69,9 @@ public final class ShowDocumentation extends Base {
 	@Relation("documentation")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getDocumentationConfigurationAdapters(@PathParam("configuration") String configurationName) {
-		initBase(servletConfig);
 		List<String> list = new ArrayList<>();
 		
-		for (IAdapter adapter : ibisManager.getConfiguration(configurationName).getRegisteredAdapters()) {
+		for (IAdapter adapter : getIbisManager().getConfiguration(configurationName).getRegisteredAdapters()) {
 			list.add(adapter.getName());
 		}
 		
@@ -87,15 +84,13 @@ public final class ShowDocumentation extends Base {
 	@Relation("documentation")
 	@Produces(MediaType.TEXT_HTML)
 	public Response getDocumentationConfigurationAdapter(@PathParam("configuration") String configurationName, @PathParam("adapter") String adapterName) {
-		initBase(servletConfig);
-		
 		StringWriter writer = new StringWriter();
         StreamResult outputTarget = new StreamResult(writer);
         
 		try {
 			TransformerFactory factory = TransformerFactory.newInstance();
 			Transformer transformer = factory.newTransformer(new StreamSource(this.getClass().getClassLoader().getResourceAsStream("xml/xsl/createDocumentation.xsl")));
-			Source xmlSource = XmlUtils.stringToSource(ibisManager.getConfiguration(configurationName).getRegisteredAdapter(adapterName).getAdapterConfigurationAsString());
+			Source xmlSource = XmlUtils.stringToSource(getIbisManager().getConfiguration(configurationName).getRegisteredAdapter(adapterName).getAdapterConfigurationAsString());
             transformer.transform(xmlSource, outputTarget);
 			return Response.status(Response.Status.OK).entity(writer.toString()).build();
 		} catch (Exception e) {
