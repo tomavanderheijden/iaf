@@ -60,6 +60,8 @@ angular.module('iaf.beheerconsole')
 					
 					title = $rootScope.otapStage +'-'+$rootScope.instanceName+' | '+stateTitle;
 				}
+				else if($rootScope.startupError) title = "ERROR";
+				
 				$timeout(function() {
 					element.text(title);
 				});
