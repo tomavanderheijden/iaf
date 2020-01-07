@@ -202,7 +202,7 @@
 	<xsl:template match="receiver">
 		<h3><xsl:value-of select="@name"/></h3>
 		<p>
-			Receives messages over <i><xsl:value-of select="tokenize(listener/@className,'\.')[last()]"/></i>.	
+			Receives messages over the <i><xsl:value-of select="tokenize(listener/@name,'\.')[last()]"/></i> listener which is of type <i><xsl:value-of select="tokenize(listener/@className,'\.')[last()]"/></i>.	
 			<xsl:apply-templates select="listener"></xsl:apply-templates>
 		</p>
 		<xsl:if test="count(messageLog) > 0">
