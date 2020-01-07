@@ -4,7 +4,8 @@
 	version="2.0">
 	
 	<xsl:include href="listeners/ApiListener.xsl"/>
-	<xsl:include href="listeners/MessageStoreListener.xsl"/>
 	<xsl:include href="listeners/JavaListener.xsl"/>
+	<xsl:include href="listeners/JdbcQueryListener.xsl"/>
+	<xsl:include href="listeners/MessageStoreListener.xsl"/>
 	
 </xsl:stylesheet>

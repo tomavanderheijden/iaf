@@ -210,8 +210,8 @@
 			Receives messages over the <i><xsl:value-of select="tokenize(listener/@name,'\.')[last()]"/></i> listener which is of type <i><xsl:value-of select="tokenize(listener/@className,'\.')[last()]"/></i>.
 			<ul>
 				<xsl:apply-templates select="listener"></xsl:apply-templates>
-				<xsl:if test="listener/Documenation">
-					<li><xsl:apply-templates select="listener/Documenation"></xsl:apply-templates></li> 
+				<xsl:if test="listener/Documentation">
+					<li><xsl:apply-templates select="listener/Documentation"></xsl:apply-templates></li> 
 				</xsl:if>
 			</ul>
 		</p>
