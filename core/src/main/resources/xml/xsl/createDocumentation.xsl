@@ -84,10 +84,8 @@
 						<li>
 							<xsl:text>Receives message from </xsl:text>
 							<xsl:value-of select="adapter/receiver[1]/listener/@className"/>
-							<xsl:if test="count(adapter/receiver[1]/Documentation)>0">
-								<xsl:text disable-output-escaping="yes"><![CDATA[<span style="font-style: italic;">]]> --Note: </xsl:text>
-								<xsl:value-of select="adapter/receiver[1]/Documentation"/>
-								<xsl:text disable-output-escaping="yes"><![CDATA[</span>]]></xsl:text>
+							<xsl:if test="adapter/receiver[1]/Documentation">
+								<xsl:apply-templates select="adapter/receiver[1]/Documentation"></xsl:apply-templates>
 							</xsl:if>
 						</li>
 						<li>
@@ -187,16 +185,20 @@
 		<xsl:if test="adapter/pipeline/pipe[@name=$forwardPath]/forward[1]/@path">
 			<li>
 				<xsl:value-of select="adapter/pipeline/pipe[@name=$forwardPath]/forward[1]/@path"/>
-				<xsl:if test="count(adapter/pipeline/pipe[@name=$forwardPath]/Documentation)>0">
-					<xsl:text disable-output-escaping="yes"><![CDATA[<span style="font-style: italic;">]]> --Note: </xsl:text>
-					<xsl:value-of select="adapter/pipeline/pipe[@name=$forwardPath]/Documentation" disable-output-escaping="yes"/>
-					<xsl:text disable-output-escaping="yes"><![CDATA[</span>]]></xsl:text>
+				<xsl:if test="adapter/pipeline/pipe[@name=$forwardPath]/Documentation">
+					<xsl:apply-templates select="adapter/pipeline/pipe[@name=$forwardPath]/Documentation"></xsl:apply-templates>
 				</xsl:if>
 			</li>
 			<xsl:call-template name="forwards">
 				<xsl:with-param name="forwardPath" select="adapter/pipeline/pipe[@name=$forwardPath]/forward[1]/@path"/>
 			</xsl:call-template>
 		</xsl:if>
+	</xsl:template>
+	
+	<xsl:template match="Documentation">
+		<xsl:text disable-output-escaping="yes"><![CDATA[<span style="font-style: italic;">]]> --Note: </xsl:text>
+		<xsl:value-of select="Documentation" disable-output-escaping="yes"/>
+		<xsl:text disable-output-escaping="yes"><![CDATA[</span>]]></xsl:text>
 	</xsl:template>
 
 	<xsl:template match="receiver">
@@ -217,9 +219,7 @@
 		</xsl:if>
 		<xsl:if test="Documentation">
 			<p>
-				<xsl:text disable-output-escaping="yes"><![CDATA[<span style="font-style: italic;">]]> --Note: </xsl:text>
-				<xsl:value-of select="Documentation"/>
-				<xsl:text disable-output-escaping="yes"><![CDATA[</span>]]></xsl:text>
+				<xsl:apply-templates select="Documentation"></xsl:apply-templates>
 			</p>
 		</xsl:if>
 	</xsl:template>
