@@ -5,6 +5,9 @@
 	<xsl:output
 		method="html"
 		indent="yes" />
+		
+	<xsl:include href="documentation/index.xsl"/>
+		
 	<xsl:template match="/">
 		<html>
 			<head>
@@ -204,8 +207,13 @@
 	<xsl:template match="receiver">
 		<h3><xsl:value-of select="@name"/></h3>
 		<p>
-			Receives messages over the <i><xsl:value-of select="tokenize(listener/@name,'\.')[last()]"/></i> listener which is of type <i><xsl:value-of select="tokenize(listener/@className,'\.')[last()]"/></i>.	
-			<xsl:apply-templates select="listener"></xsl:apply-templates>
+			Receives messages over the <i><xsl:value-of select="tokenize(listener/@name,'\.')[last()]"/></i> listener which is of type <i><xsl:value-of select="tokenize(listener/@className,'\.')[last()]"/></i>.
+			<ul>
+				<xsl:apply-templates select="listener"></xsl:apply-templates>
+				<xsl:if test="listener/Documenation">
+					<li><xsl:apply-templates select="listener/Documenation"></xsl:apply-templates></li> 
+				</xsl:if>
+			</ul>
 		</p>
 		<xsl:if test="messageLog">
 			<xsl:call-template name="formatReceiverJdbcComponents">
@@ -228,46 +236,7 @@
 		<xsl:param name="jdbcComponent"/>
 		<p>Has <xsl:value-of select="local-name($jdbcComponent)"/> of type <i><xsl:value-of select="tokenize($jdbcComponent/@className,'\.')[last()]"/></i> writing to slotId <i><xsl:value-of select="$jdbcComponent/@slotId"/></i> <xsl:choose><xsl:when test="$jdbcComponent/@jmsRealm"> at jmsRealm <i><xsl:value-of select="$jdbcComponent/@jmsRealm"/></i></xsl:when><xsl:otherwise> at datasourceName <i><xsl:value-of select="$jdbcComponent/@datasourceName"/></i></xsl:otherwise></xsl:choose>.</p>
 	</xsl:template>
-	
-	<xsl:template match="listener">
-		<ul>
-			<xsl:choose>
-				<xsl:when test="@className = 'nl.nn.adapterframework.http.rest.ApiListener'">
-					<xsl:variable name="consumes">
-						<xsl:choose>
-							<xsl:when test="@consumes"><xsl:value-of select="@consumes"/></xsl:when>
-							<xsl:otherwise>*/*</xsl:otherwise>
-						</xsl:choose>
-					</xsl:variable>
-					<xsl:variable name="produces">
-						<xsl:choose>
-							<xsl:when test="@produces"><xsl:value-of select="@produces"/></xsl:when>
-							<xsl:otherwise>*/*</xsl:otherwise>
-						</xsl:choose>
-					</xsl:variable>
-					<li>Listens for <i><xsl:value-of select="@method"/></i> messages at URI pattern <i>/<xsl:value-of select="@uriPattern"/></i></li>
-					<li>Input format is <i><xsl:value-of select="$consumes"/></i></li>
-					<li>Output format is <i><xsl:value-of select="$produces"/></i></li>
-				</xsl:when>
-				<xsl:when test="@className = 'nl.nn.adapterframework.jdbc.MessageStoreListener'">
-					<li>Listens for messages in messagestore with slotId <i><xsl:value-of select="@slotId"/></i> at jmsRealm <i><xsl:value-of select="@jmsRealm"/></i></li>
-				</xsl:when>
-				<xsl:when test="@className = 'nl.nn.adapterframework.receivers.JavaListener'">
-					<li>Listens for messages over java with name <i><xsl:value-of select="@name"/></i>.</li>
-					<xsl:if test="@serviceName">
-						<li>With the service name <i><xsl:value-of select="@serviceName"/></i>.</li>
-					</xsl:if>
-				</xsl:when>
-				<xsl:when test="@className = 'nl.nn.adapterframework.jdbc.JdbcQueryListener'">
-					<li>Listens for messages stored in database with datasourceName <i><xsl:value-of select="@datasourceName"/></i>.</li>
-					<li>Listens to the following query <i><xsl:value-of select="@selectQuery"/></i> for messages, identifying them as unique by primary key <i><xsl:value-of select="@keyField"/></i>.</li>
-					<li>Executes following query when succesfully proccessed message <i><xsl:value-of select="@updateStatusToProcessedQuery"/></i></li>
-					<li>Executes following query when an error occured during processing of message <i><xsl:value-of select="@updateStatusToErrorQuery"/></i></li>
-				</xsl:when>
-			</xsl:choose>
-		</ul>
-	</xsl:template>
-		
+
 	<xsl:template name="documents">
 		<p>
 			<svg width="32px" height="32px" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" >
