@@ -54,16 +54,16 @@
 						<xsl:value-of select="adapter/@name" />
 
 						<xsl:text> has </xsl:text>
-						<xsl:value-of select="$pipeCount" />
-						<xsl:text> pipe</xsl:text>
-						<xsl:if test="not($pipeCount = 1)">
+						<xsl:value-of select="$receiverCount " />
+						<xsl:text> receiver</xsl:text>
+						<xsl:if test="not($receiverCount  = 1)">
 							<xsl:text>s</xsl:text>
 						</xsl:if>
 
-						<xsl:text> and has </xsl:text>
-						<xsl:value-of select="$receiverCount" />
-						<xsl:text> receiver</xsl:text>
-						<xsl:if test="not($receiverCount = 1)">
+						<xsl:text> and </xsl:text>
+						<xsl:value-of select="$pipeCount" />
+						<xsl:text> pipe</xsl:text>
+						<xsl:if test="not($pipeCount = 1)">
 							<xsl:text>s</xsl:text>
 						</xsl:if>
 						
