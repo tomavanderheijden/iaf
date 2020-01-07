@@ -234,27 +234,42 @@
 	</xsl:template>
 	
 	<xsl:template match="listener">
-		<xsl:choose>
-			<xsl:when test="@className = 'nl.nn.adapterframework.http.rest.ApiListener'">
-				<xsl:variable name="consumes">
-					<xsl:choose>
-						<xsl:when test="string-length(@consumes) = 0">*/*</xsl:when>
-						<xsl:otherwise><xsl:value-of select="@consumes"/></xsl:otherwise>
-					</xsl:choose>
-				</xsl:variable>
-				<xsl:variable name="produces">
-					<xsl:choose>
-						<xsl:when test="string-length(@produces) = 0">*/*</xsl:when>
-						<xsl:otherwise><xsl:value-of select="@produces"/></xsl:otherwise>
-					</xsl:choose>
-				</xsl:variable>
-				<ul>
+		<ul>
+			<xsl:choose>
+				<xsl:when test="@className = 'nl.nn.adapterframework.http.rest.ApiListener'">
+					<xsl:variable name="consumes">
+						<xsl:choose>
+							<xsl:when test="string-length(@consumes) = 0">*/*</xsl:when>
+							<xsl:otherwise><xsl:value-of select="@consumes"/></xsl:otherwise>
+						</xsl:choose>
+					</xsl:variable>
+					<xsl:variable name="produces">
+						<xsl:choose>
+							<xsl:when test="string-length(@produces) = 0">*/*</xsl:when>
+							<xsl:otherwise><xsl:value-of select="@produces"/></xsl:otherwise>
+						</xsl:choose>
+					</xsl:variable>
 					<li>Listens for <i><xsl:value-of select="@method"/></i> messages at URI pattern <i>/<xsl:value-of select="@uriPattern"/></i></li>
 					<li>Input format is <i><xsl:value-of select="$consumes"/></i></li>
 					<li>Output format is <i><xsl:value-of select="$produces"/></i></li>
-				</ul>
-			</xsl:when>
-		</xsl:choose>
+				</xsl:when>
+				<xsl:when test="@className = 'nl.nn.adapterframework.jdbc.MessageStoreListener'">
+					<li>Listens for messages in messagestore with slotId <i><xsl:value-of select="@slotId"/></i> at jmsRealm <i><xsl:value-of select="@jmsRealm"/></i></li>
+				</xsl:when>
+				<xsl:when test="@className = 'nl.nn.adapterframework.receivers.JavaListener'">
+					<li>Listens for messages over java with name <i><xsl:value-of select="@name"/></i>.</li>
+					<xsl:if test="@serviceName">
+						<li>With the service name <i><xsl:value-of select="@serviceName"/></i>.</li>
+					</xsl:if>
+				</xsl:when>
+				<xsl:when test="@className = 'nl.nn.adapterframework.jdbc.JdbcQueryListener'">
+					<li>Listens for messages stored in database with datasourceName <i><xsl:value-of select="@datasourceName"/></i>.</li>
+					<li>Listens to the following query <i><xsl:value-of select="@selectQuery"/></i> for messages, identifying them as unique by primary key <i><xsl:value-of select="@keyField"/></i>.</li>
+					<li>Executes following query when succesfully proccessed message <i><xsl:value-of select="@updateStatusToProcessedQuery"/></i></li>
+					<li>Executes following query when an error occured during processing of message <i><xsl:value-of select="@updateStatusToErrorQuery"/></i></li>
+				</xsl:when>
+			</xsl:choose>
+		</ul>
 	</xsl:template>
 		
 	<xsl:template name="documents">
