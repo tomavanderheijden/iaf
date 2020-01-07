@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+	xmlns:frank="http://frank"
 	version="2.0">
 	<xsl:output
 		method="html"
@@ -152,7 +153,7 @@
 										</xsl:choose>
 									</td>
 									<td>
-										<xsl:value-of select="tokenize(@className,'\.')[last()]"/>
+										<xsl:value-of select="frank:getLastPartOfClassName(@className)"/>
 									</td>
 									<td>
 										<xsl:if test="@url">
@@ -207,7 +208,7 @@
 	<xsl:template match="receiver">
 		<h3><xsl:value-of select="@name"/></h3>
 		<p>
-			Receives messages over the <i><xsl:value-of select="tokenize(listener/@name,'\.')[last()]"/></i> listener which is of type <i><xsl:value-of select="tokenize(listener/@className,'\.')[last()]"/></i>.
+			Receives messages over the <i><xsl:value-of select="listener/@name"/></i> listener which is of type <i><xsl:value-of select="frank:getLastPartOfClassName(listener/@className)"/></i>.
 			<ul>
 				<xsl:apply-templates select="listener"></xsl:apply-templates>
 				<xsl:if test="listener/Documentation">
@@ -234,7 +235,7 @@
 	
 	<xsl:template name="formatReceiverJdbcComponents">
 		<xsl:param name="jdbcComponent"/>
-		<p>Has <xsl:value-of select="local-name($jdbcComponent)"/> of type <i><xsl:value-of select="tokenize($jdbcComponent/@className,'\.')[last()]"/></i> writing to slotId <i><xsl:value-of select="$jdbcComponent/@slotId"/></i> <xsl:choose><xsl:when test="$jdbcComponent/@jmsRealm"> at jmsRealm <i><xsl:value-of select="$jdbcComponent/@jmsRealm"/></i></xsl:when><xsl:otherwise> at datasourceName <i><xsl:value-of select="$jdbcComponent/@datasourceName"/></i></xsl:otherwise></xsl:choose>.</p>
+		<p>Has <xsl:value-of select="local-name($jdbcComponent)"/> of type <i><xsl:value-of select="frank:getLastPartOfClassName($jdbcComponent/@className)"/></i> writing to slotId <i><xsl:value-of select="$jdbcComponent/@slotId"/></i> <xsl:choose><xsl:when test="$jdbcComponent/@jmsRealm"> at jmsRealm <i><xsl:value-of select="$jdbcComponent/@jmsRealm"/></i></xsl:when><xsl:otherwise> at datasourceName <i><xsl:value-of select="$jdbcComponent/@datasourceName"/></i></xsl:otherwise></xsl:choose>.</p>
 	</xsl:template>
 
 	<xsl:template name="documents">
@@ -253,4 +254,9 @@
 			<xsl:value-of select="."/>
 		</p>
 	</xsl:template>
+	
+	<xsl:function name="frank:getLastPartOfClassName">
+	    <xsl:param name="inputString"/>
+	    <xsl:value-of select="tokenize($inputString,'\.')[last()]"/>
+	</xsl:function>
 </xsl:stylesheet>
