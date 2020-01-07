@@ -130,7 +130,7 @@
 						</xsl:if>
 						<xsl:text>.</xsl:text>
 					</p>
-					<xsl:if test="count(adapter/pipeline/pipe/sender) > 0">
+					<xsl:if test="adapter/pipeline/pipe/sender">
 						<table border="1">
 							<tr>
 								<th>Sender name</th>
@@ -142,7 +142,7 @@
 								<tr>
 									<td>
 										<xsl:choose>
-											<xsl:when test="count(@name)=1">
+											<xsl:when test="@name">
 												<xsl:value-of select="@name"/>
 											</xsl:when>
 											<xsl:otherwise>
@@ -154,19 +154,19 @@
 										<xsl:value-of select="tokenize(@className,'\.')[last()]"/>
 									</td>
 									<td>
-										<xsl:if test="count(@url)=1">
+										<xsl:if test="@url">
 											<xsl:value-of select="@url"/>
 										</xsl:if>
-										<xsl:if test="count(@javaListener)=1">
+										<xsl:if test="@javaListener">
 											<xsl:value-of select="@javaListener"/>
 										</xsl:if>
-										<xsl:if test="count(@serviceName)=1">
+										<xsl:if test="@serviceName">
 											<xsl:value-of select="@serviceName"/>
 										</xsl:if>
-										<xsl:if test="count(@datasourceName)=1">
+										<xsl:if test="@datasourceName">
 											<xsl:value-of select="@datasourceName"/>
 										</xsl:if>
-										<xsl:if test="count(@jmsRealm)=1">
+										<xsl:if test="@jmsRealm">
 											<xsl:value-of select="@djmsRealm"/>
 										</xsl:if>
 									</td>
@@ -184,7 +184,7 @@
 	
 	<xsl:template name="forwards">
 		<xsl:param name="forwardPath"/>
-		<xsl:if test="count(adapter/pipeline/pipe[@name=$forwardPath]/forward[1]/@path)>0">
+		<xsl:if test="adapter/pipeline/pipe[@name=$forwardPath]/forward[1]/@path">
 			<li>
 				<xsl:value-of select="adapter/pipeline/pipe[@name=$forwardPath]/forward[1]/@path"/>
 				<xsl:if test="count(adapter/pipeline/pipe[@name=$forwardPath]/Documentation)>0">
@@ -205,17 +205,17 @@
 			Receives messages over the <i><xsl:value-of select="tokenize(listener/@name,'\.')[last()]"/></i> listener which is of type <i><xsl:value-of select="tokenize(listener/@className,'\.')[last()]"/></i>.	
 			<xsl:apply-templates select="listener"></xsl:apply-templates>
 		</p>
-		<xsl:if test="count(messageLog) > 0">
+		<xsl:if test="messageLog">
 			<xsl:call-template name="formatReceiverJdbcComponents">
 				<xsl:with-param name="jdbcComponent" select="messageLog"/>
 			</xsl:call-template>
 		</xsl:if>
-		<xsl:if test="count(errorStorage) > 0">
+		<xsl:if test="errorStorage">
 			<xsl:call-template name="formatReceiverJdbcComponents">
 				<xsl:with-param name="jdbcComponent" select="errorStorage"/>
 			</xsl:call-template>
 		</xsl:if>
-		<xsl:if test="count(Documentation) > 0">
+		<xsl:if test="Documentation">
 			<p>
 				<xsl:text disable-output-escaping="yes"><![CDATA[<span style="font-style: italic;">]]> --Note: </xsl:text>
 				<xsl:value-of select="Documentation"/>
@@ -235,14 +235,14 @@
 				<xsl:when test="@className = 'nl.nn.adapterframework.http.rest.ApiListener'">
 					<xsl:variable name="consumes">
 						<xsl:choose>
-							<xsl:when test="string-length(@consumes) = 0">*/*</xsl:when>
-							<xsl:otherwise><xsl:value-of select="@consumes"/></xsl:otherwise>
+							<xsl:when test="@consumes"><xsl:value-of select="@consumes"/></xsl:when>
+							<xsl:otherwise>*/*</xsl:otherwise>
 						</xsl:choose>
 					</xsl:variable>
 					<xsl:variable name="produces">
 						<xsl:choose>
-							<xsl:when test="string-length(@produces) = 0">*/*</xsl:when>
-							<xsl:otherwise><xsl:value-of select="@produces"/></xsl:otherwise>
+							<xsl:when test="@produces"><xsl:value-of select="@produces"/></xsl:when>
+							<xsl:otherwise>*/*</xsl:otherwise>
 						</xsl:choose>
 					</xsl:variable>
 					<li>Listens for <i><xsl:value-of select="@method"/></i> messages at URI pattern <i>/<xsl:value-of select="@uriPattern"/></i></li>
