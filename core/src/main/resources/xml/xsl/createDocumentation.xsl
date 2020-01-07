@@ -166,6 +166,9 @@
 										<xsl:if test="count(@datasourceName)=1">
 											<xsl:value-of select="@datasourceName"/>
 										</xsl:if>
+										<xsl:if test="count(@jmsRealm)=1">
+											<xsl:value-of select="@djmsRealm"/>
+										</xsl:if>
 									</td>
 									<td>
 										<xsl:value-of select="Documentation" disable-output-escaping="yes"/>
