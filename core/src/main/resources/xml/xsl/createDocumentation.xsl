@@ -151,7 +151,7 @@
 										</xsl:choose>
 									</td>
 									<td>
-										<xsl:value-of select="@className"/>
+										<xsl:value-of select="tokenize(@className,'\.')[last()]"/>
 									</td>
 									<td>
 										<xsl:if test="count(@url)=1">
