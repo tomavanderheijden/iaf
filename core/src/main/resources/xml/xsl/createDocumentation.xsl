@@ -207,16 +207,12 @@
 		</p>
 		<xsl:if test="count(messageLog) > 0">
 			<xsl:call-template name="formatReceiverJdbcComponents">
-				<xsl:with-param name="jdbcComponent">
-					<xsl:value-of select="messageLog"/>
-				</xsl:with-param>
+				<xsl:with-param name="jdbcComponent" select="messageLog"/>
 			</xsl:call-template>
 		</xsl:if>
 		<xsl:if test="count(errorStorage) > 0">
 			<xsl:call-template name="formatReceiverJdbcComponents">
-				<xsl:with-param name="jdbcComponent">
-					<xsl:value-of select="errorStorage"/>
-				</xsl:with-param>
+				<xsl:with-param name="jdbcComponent" select="errorStorage"/>
 			</xsl:call-template>
 		</xsl:if>
 		<xsl:if test="count(Documentation) > 0">
@@ -230,7 +226,7 @@
 	
 	<xsl:template name="formatReceiverJdbcComponents">
 		<xsl:param name="jdbcComponent"/>
-		<p>Has <xsl:value-of select="local-name(jdbcComponent)"/> of type <i><xsl:value-of select="tokenize($jdbcComponent/@className,'\.')[last()]"/></i> writing to slotId <i><xsl:value-of select="$jdbcComponent/@slotId"/></i> <xsl:choose><xsl:when test="$jdbcComponent/@jmsRealm">at jmsRealm <i><xsl:value-of select="$jdbcComponent/@jmsRealm"/></i></xsl:when><xsl:otherwise>at datasourceName <i><xsl:value-of select="$jdbcComponent/@datasourceName"/></i></xsl:otherwise></xsl:choose>.</p>
+		<p>Has <xsl:value-of select="local-name($jdbcComponent)"/> of type <i><xsl:value-of select="tokenize($jdbcComponent/@className,'\.')[last()]"/></i> writing to slotId <i><xsl:value-of select="$jdbcComponent/@slotId"/></i> <xsl:choose><xsl:when test="$jdbcComponent/@jmsRealm"> at jmsRealm <i><xsl:value-of select="$jdbcComponent/@jmsRealm"/></i></xsl:when><xsl:otherwise> at datasourceName <i><xsl:value-of select="$jdbcComponent/@datasourceName"/></i></xsl:otherwise></xsl:choose>.</p>
 	</xsl:template>
 	
 	<xsl:template match="listener">
