@@ -1,0 +1,37 @@
+<ibis>
+	<adapter name="Stat" description="Gets users" >
+
+		<receiver
+			className="nl.nn.adapterframework.receivers.GenericReceiver"
+			name="Stat"
+		>
+			<listener 
+				className="nl.nn.adapterframework.http.rest.ApiListener"
+				uriPattern="mgt/stat/{iets}"
+				method="GET"
+				produces="JSON"
+			/>
+		</receiver>
+		
+		<pipeline firstPipe="result">
+		
+			<exits>
+				<exit path="OK" state="success" code="200"/>
+				<exit path="NotModified" state="success" code="304" empty="true" />
+				<exit path="BadRequest" state="error" code="400" empty="true" />
+				<exit path="NotAuthorized" state="error" code="401" empty="true" />
+				<exit path="NotAllowed" state="error" code="403" empty="true" />
+				<exit path="ServerError" state="error" code="500" empty="true" />
+			</exits>
+			
+			<pipe
+				name="result"
+				className="nl.nn.adapterframework.pipes.FixedResult"
+				returnString='[{"key":"servername","values":["DDCCS","nl001lapvm1018","nl001lapvm1021","nl001lapvm105_851","nl001lapvm106_851","nl001lapvm106_851/ddcis_cluster","nl001lapvm107_852","nl001lapvm107_852/ddccs_cluster","nl020lapvm1222"]},{"key":"eventType","values":["combineToSinglePdfRequest","converteerDocumentRequest","create","createMailboxServConfig","createPropertyValidationRules","createValidationDefinition","ddccs conversion","ddccs request wait","DdcimLogDto","delete","deleteDocument","deleteMailboxServConfig","deletePropertyValidationRules","deleteValidationDefinition","getAll","getAllValidationDefinitions","getArchives","getConfiguration","getDocument","getDocumentAsPdf","getDocumentByBerichtId","getDocumentByGUID","getDownload","getMailboxServConfig","getMailboxServConfigAll","getMgtLogEntries","getMgtLogEntriesSize","getMgtLogMetaData","getMgtStatistics","getMgtStatisticsMetaData","getProperties","getUser","getVersion","logMessage","MailBoxPollResponseDto","PubKenmerkUpdate","storeDocument","totalConversion","UnknownDdcimReplyMsg","updateConfigItemValue","updateMailboxServConfig","updatePropertyValidationRules","updateUserModifiableFields","updateValidationDefinition"]},{"key":"success","values":["OK","NOTOK"]}]'
+			>
+				<forward name="success" path="OK" />
+			</pipe>
+
+		</pipeline>
+	</adapter>
+</ibis>

@@ -10,7 +10,7 @@
 				<xsl:otherwise>unknown</xsl:otherwise>
 			</xsl:choose>
 		</xsl:variable>
-		<li>Listens for messages over java with name <i><xsl:value-of select="@name"/></i>.</li>
+		<li>Listens for messages over java with name <i><xsl:value-of select="$name"/></i>.</li>
 		<xsl:if test="@serviceName">
 			<li>With the service name <i><xsl:value-of select="@serviceName"/></i>.</li>
 		</xsl:if>

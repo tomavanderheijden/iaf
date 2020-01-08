@@ -1,18 +1,37 @@
 <module>
-	<adapter name="HelloWorld" active="${HelloWorld.active}">
+	<adapter name="HelloWorld" description="My example adapter to generate documentation about." active="${HelloWorld.active}">
 		<receiver
 			name="HelloWorld"
 			className="nl.nn.adapterframework.receivers.GenericReceiver"
 			>
-			<listener
-				name="HelloWorld"
-				className="nl.nn.adapterframework.receivers.JavaListener"
+			<listener 
+				className="nl.nn.adapterframework.http.rest.ApiListener"
+				uriPattern="NotifyMailProcessedForNavigator"
+				method="POST"
+				produces="XML"
 			/>
+<!-- 			<messageLog
+				className="nl.nn.adapterframework.jdbc.DummyTransactionalStorage"
+				jmsRealm="jdbc"
+				slotId="${instance.name}/NotifyMailProcessedForNavigator_Action"/>
+			<errorStorage
+				className="nl.nn.adapterframework.jdbc.JdbcTransactionalStorage"
+				jmsRealm="jdbc"
+				slotId="${instance.name}/NotifyMailProcessedForNavigator_Action" /> -->
+			<Documentation>Only exposed for internal adapters, meant as sub adapter.</Documentation>
 		</receiver>
-		<pipeline firstPipe="HelloWorld">
+		<pipeline firstPipe="CreateMessage">
 			<exits>
 				<exit path="EXIT" state="success"/>
 			</exits>
+			<pipe
+				name="CreateMessage"
+				getInputFromFixedValue="&lt;dummy/&gt;"
+				className="nl.nn.adapterframework.pipes.XsltPipe"
+				styleSheetName="xsl/CreateMessage.xsl"
+			>
+				<forward name="success" path="HelloWorld"/>
+			</pipe>
 			<pipe
 				name="HelloWorld"
 				className="nl.nn.adapterframework.pipes.FixedResult"

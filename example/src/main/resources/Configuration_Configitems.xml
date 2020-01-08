@@ -1,0 +1,37 @@
+<ibis>
+	<adapter name="Configitems" description="Gets users" >
+
+		<receiver
+			className="nl.nn.adapterframework.receivers.GenericReceiver"
+			name="Configitems"
+		>
+			<listener 
+				className="nl.nn.adapterframework.http.rest.ApiListener"
+				uriPattern="configitems"
+				method="GET"
+				produces="JSON"
+			/>
+		</receiver>
+		
+		<pipeline firstPipe="result">
+		
+			<exits>
+				<exit path="OK" state="success" code="200"/>
+				<exit path="NotModified" state="success" code="304" empty="true" />
+				<exit path="BadRequest" state="error" code="400" empty="true" />
+				<exit path="NotAuthorized" state="error" code="401" empty="true" />
+				<exit path="NotAllowed" state="error" code="403" empty="true" />
+				<exit path="ServerError" state="error" code="500" empty="true" />
+			</exits>
+			
+			<pipe
+				name="result"
+				className="nl.nn.adapterframework.pipes.FixedResult"
+				returnString='[{"configItemId":"retentie conversie periode","value":"70","description":"De retentie periode voor conversie resultaten in dagen (Default 90 dagen)"},{"configItemId":"retentie kenmerk periode","value":"180","description":"De retentie periode voor kenmerken in dagen (Default 90 dagen)"}]'
+			>
+				<forward name="success" path="OK" />
+			</pipe>
+
+		</pipeline>
+	</adapter>
+</ibis>

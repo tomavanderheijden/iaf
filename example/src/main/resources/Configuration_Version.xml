@@ -1,0 +1,37 @@
+<ibis>
+	<adapter name="Version" description="Gets users" >
+
+		<receiver
+			className="nl.nn.adapterframework.receivers.GenericReceiver"
+			name="Version"
+		>
+			<listener 
+				className="nl.nn.adapterframework.http.rest.ApiListener"
+				uriPattern="version"
+				method="GET"
+				produces="JSON"
+			/>
+		</receiver>
+		
+		<pipeline firstPipe="result">
+		
+			<exits>
+				<exit path="OK" state="success" code="200"/>
+				<exit path="NotModified" state="success" code="304" empty="true" />
+				<exit path="BadRequest" state="error" code="400" empty="true" />
+				<exit path="NotAuthorized" state="error" code="401" empty="true" />
+				<exit path="NotAllowed" state="error" code="403" empty="true" />
+				<exit path="ServerError" state="error" code="500" empty="true" />
+			</exits>
+			
+			<pipe
+				name="result"
+				className="nl.nn.adapterframework.pipes.FixedResult"
+				returnString='{"version":"08.05.14.1013"}'
+			>
+				<forward name="success" path="OK" />
+			</pipe>
+
+		</pipeline>
+	</adapter>
+</ibis>

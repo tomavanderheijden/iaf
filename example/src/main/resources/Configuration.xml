@@ -2,6 +2,17 @@
 	<!ENTITY HelloWorld SYSTEM "ConfigurationHelloWorld.xml">
 	<!ENTITY HelloWorlds SYSTEM "ConfigurationHelloWorlds.xml">
 	<!ENTITY HelloBeautifulWorld SYSTEM "ConfigurationHelloBeautifulWorld.xml">
+	
+	<!ENTITY User_Get SYSTEM "./Configuration_User_Get.xml">
+	<!ENTITY Configuration SYSTEM "./Configuration_Configuration.xml">
+	<!ENTITY Version SYSTEM "./Configuration_Version.xml">
+	<!ENTITY Archives SYSTEM "./Configuration_Archives.xml">
+	<!ENTITY Stat SYSTEM "./Configuration_Stat.xml">
+	<!ENTITY Log SYSTEM "./Configuration_Log.xml">
+	<!ENTITY Configitems SYSTEM "./Configuration_Configitems.xml">
+	<!ENTITY MailboxServiceConfig SYSTEM "./Configuration_MailboxServiceConfig.xml">
+	<!ENTITY ValidationDefinition SYSTEM "./Configuration_ValidationDefinition.xml">
+	<!ENTITY ValidationDetail SYSTEM "./Configuration_ValidationDetail.xml">
 ]>
 <configuration name="Ibis4Example">
 	<jmsRealms>
@@ -11,4 +22,15 @@
 	&HelloWorld;
 	&HelloWorlds;
 	&HelloBeautifulWorld;
+	
+		&User_Get;
+	&Configuration;
+	&Version;
+	&Archives;
+	&Stat;
+	&Log;
+	&Configitems;
+	&MailboxServiceConfig;
+	&ValidationDefinition;
+	&ValidationDetail;
 </configuration>

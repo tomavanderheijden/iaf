@@ -1,0 +1,37 @@
+<ibis>
+	<adapter name="ValidationDetail" description="Gets ValidationDetail" >
+
+		<receiver
+			className="nl.nn.adapterframework.receivers.GenericReceiver"
+			name="ValidationDetail"
+		>
+			<listener 
+				className="nl.nn.adapterframework.http.rest.ApiListener"
+				uriPattern="archives/{detailId}"
+				method="GET"
+				produces="JSON"
+			/>
+		</receiver>
+		
+		<pipeline firstPipe="result">
+		
+			<exits>
+				<exit path="OK" state="success" code="200"/>
+				<exit path="NotModified" state="success" code="304" empty="true" />
+				<exit path="BadRequest" state="error" code="400" empty="true" />
+				<exit path="NotAuthorized" state="error" code="401" empty="true" />
+				<exit path="NotAllowed" state="error" code="403" empty="true" />
+				<exit path="ServerError" state="error" code="500" empty="true" />
+			</exits>
+			
+			<pipe
+				name="result"
+				className="nl.nn.adapterframework.pipes.FixedResult"
+				returnString='[{"maxLength":2147483647,"propertyClass":"com.deltalloyd.dm.ddccs.common.services.cm.prop.PropertyString","displayName":"file name (or label)","localName":"","propertyDefinitionId":"cmis:name","queryName":"cmis:name","propertyRequired":true,"updatability":"READWRITE","type":"string"},{"maxLength":30,"propertyClass":"com.deltalloyd.dm.ddccs.common.services.cm.prop.PropertyString","displayName":"Contractnummer","localName":"Contractnummer_TVAR_4_30","propertyDefinitionId":"clbNonGroup.Contractnummer_TVAR_4_30","queryName":"clbNonGroup-Contractnummer_TVAR_4_30","propertyRequired":true,"updatability":"READWRITE","propertyValidationRules":{"id":16,"dropdownOptions":[],"vijfProef":true,"negenProef":false,"elfProef":false,"isVerplicht":false,"userText":"","naam":"5-proef","validationDefinitions":[{"type":"5-proef","id":2,"name":"5-proef","type":"5-proef","predefined":true,"customValidatableFor":["string","integer"]}],"itemTypeId":"$t!-2_DEP_006_06_02_00v-1","propertyDefinitionId":"clbNonGroup.Contractnummer_TVAR_4_30","managerText":"","defaultValue":"","hiddenField":false,"aavContractnummer":false,"datumNietInDeToekomst":false},"type":"string"},{"maxLength":20,"propertyClass":"com.deltalloyd.dm.ddccs.common.services.cm.prop.PropertyString","displayName":"Schadedossiernummer","localName":"Schadedossiernummer_TVAR_4_20","propertyDefinitionId":"clbNonGroup.Schadedossiernummer_TVAR_4_20","queryName":"clbNonGroup-Schadedossiernummer_TVAR_4_20","propertyRequired":false,"updatability":"READWRITE","type":"string"},{"maxLength":20,"propertyClass":"com.deltalloyd.dm.ddccs.common.services.cm.prop.PropertyString","displayName":"BC nummer","localName":"BCNummer_TVAR_4_20","propertyDefinitionId":"clbNonGroup.BCNummer_TVAR_4_20","queryName":"clbNonGroup-BCNummer_TVAR_4_20","propertyRequired":false,"updatability":"READWRITE","type":"string"},{"propertyClass":"com.deltalloyd.dm.ddccs.common.services.cm.prop.PropertyDate","displayName":"Schadedatum","localName":"Schadedatum_DT","propertyDefinitionId":"clbNonGroup.Schadedatum_DT","queryName":"clbNonGroup-Schadedatum_DT","propertyRequired":false,"updatability":"READWRITE","type":"date"},{"maxLength":40,"propertyClass":"com.deltalloyd.dm.ddccs.common.services.cm.prop.PropertyString","displayName":"Productsoort","localName":"Produkt_TVAR_4_40","propertyDefinitionId":"clbNonGroup.Produkt_TVAR_4_40","queryName":"clbNonGroup-Produkt_TVAR_4_40","propertyRequired":false,"updatability":"READWRITE","type":"string"},{"maxLength":30,"propertyClass":"com.deltalloyd.dm.ddccs.common.services.cm.prop.PropertyString","displayName":"Verzekeringssoort","localName":"Verzekeringssoort_TVAR_4_30","propertyDefinitionId":"clbNonGroup.Verzekeringssoort_TVAR_4_30","queryName":"clbNonGroup-Verzekeringssoort_TVAR_4_30","propertyRequired":false,"updatability":"READWRITE","type":"string"},{"maxLength":40,"propertyClass":"com.deltalloyd.dm.ddccs.common.services.cm.prop.PropertyString","displayName":"Documentsoort","localName":"Documentsoort_TVAR_4_40","propertyDefinitionId":"clbNonGroup.Documentsoort_TVAR_4_40","queryName":"clbNonGroup-Documentsoort_TVAR_4_40","propertyRequired":false,"updatability":"READWRITE","type":"string"},{"maxLength":1,"propertyClass":"com.deltalloyd.dm.ddccs.common.services.cm.prop.PropertyString","displayName":"Documentstroom","localName":"Documentstroom_TVAR_4_1","propertyDefinitionId":"clbNonGroup.Documentstroom_TVAR_4_1","queryName":"clbNonGroup-Documentstroom_TVAR_4_1","propertyRequired":true,"updatability":"READWRITE","type":"string"},{"maxValue":9999,"minValue":0,"propertyClass":"com.deltalloyd.dm.ddccs.common.services.cm.prop.PropertyInteger","displayName":"Aantal Paginas","localName":"Aantal_Paginas_KGH_9999","propertyDefinitionId":"clbNonGroup.Aantal_Paginas_KGH_9999","queryName":"clbNonGroup-Aantal_Paginas_KGH_9999","propertyRequired":false,"updatability":"READWRITE","type":"integer"},{"propertyClass":"com.deltalloyd.dm.ddccs.common.services.cm.prop.PropertyDate","displayName":"Documentdatum","localName":"Documentdatum_DT","propertyDefinitionId":"clbNonGroup.Documentdatum_DT","queryName":"clbNonGroup-Documentdatum_DT","propertyRequired":true,"updatability":"READWRITE","type":"date"},{"propertyClass":"com.deltalloyd.dm.ddccs.common.services.cm.prop.PropertyTime","displayName":"Scantijd","localName":"Scantijd_TM","propertyDefinitionId":"clbNonGroup.Scantijd_TM","queryName":"clbNonGroup-Scantijd_TM","propertyRequired":false,"updatability":"READWRITE","type":"time"},{"maxLength":20,"propertyClass":"com.deltalloyd.dm.ddccs.common.services.cm.prop.PropertyString","displayName":"Label","localName":"Label_TVAR_4_20","propertyDefinitionId":"clbNonGroup.Label_TVAR_4_20","queryName":"clbNonGroup-Label_TVAR_4_20","propertyRequired":true,"updatability":"READWRITE","type":"string"},{"maxLength":25,"propertyClass":"com.deltalloyd.dm.ddccs.common.services.cm.prop.PropertyString","displayName":"Bron","localName":"Bron_TVAR_4_25","propertyDefinitionId":"clbNonGroup.Bron_TVAR_4_25","queryName":"clbNonGroup-Bron_TVAR_4_25","propertyRequired":true,"updatability":"READWRITE","type":"string"},{"maxLength":15,"propertyClass":"com.deltalloyd.dm.ddccs.common.services.cm.prop.PropertyString","displayName":"Uniek Document ID","localName":"Uniek_Document_ID_TVAR_4_15","propertyDefinitionId":"clbNonGroup.Uniek_Document_ID_TVAR_4_15","queryName":"clbNonGroup-Uniek_Document_ID_TVAR_4_15","propertyRequired":false,"updatability":"READWRITE","type":"string"},{"maxLength":15,"propertyClass":"com.deltalloyd.dm.ddccs.common.services.cm.prop.PropertyString","displayName":"Afzender","localName":"Afzender_TVAR_4_15","propertyDefinitionId":"clbNonGroup.Afzender_TVAR_4_15","queryName":"clbNonGroup-Afzender_TVAR_4_15","propertyRequired":false,"updatability":"READWRITE","type":"string"}]'
+			>
+				<forward name="success" path="OK" />
+			</pipe>
+
+		</pipeline>
+	</adapter>
+</ibis>

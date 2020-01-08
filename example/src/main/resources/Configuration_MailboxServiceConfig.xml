@@ -1,0 +1,37 @@
+<ibis>
+	<adapter name="MailboxServiceConfig" description="Gets users" >
+
+		<receiver
+			className="nl.nn.adapterframework.receivers.GenericReceiver"
+			name="MailboxServiceConfig"
+		>
+			<listener 
+				className="nl.nn.adapterframework.http.rest.ApiListener"
+				uriPattern="mailboxServiceConfig"
+				method="GET"
+				produces="JSON"
+			/>
+		</receiver>
+		
+		<pipeline firstPipe="result">
+		
+			<exits>
+				<exit path="OK" state="success" code="200"/>
+				<exit path="NotModified" state="success" code="304" empty="true" />
+				<exit path="BadRequest" state="error" code="400" empty="true" />
+				<exit path="NotAuthorized" state="error" code="401" empty="true" />
+				<exit path="NotAllowed" state="error" code="403" empty="true" />
+				<exit path="ServerError" state="error" code="500" empty="true" />
+			</exits>
+			
+			<pipe
+				name="result"
+				className="nl.nn.adapterframework.pipes.FixedResult"
+				returnString='[{"id":2,"imapHost":"accdom.imap.lb.ad.intra:143","username":"imapmail@deltalloyd.nl","password":"D3ltalloyd","enabled":false,"itemTypeId":"$t!-2_DEP_001_09_02_00v-1","bpmsAddress":"BPMS1","description":"Configuratie voor test -omgeving (inclusief MQ subscription)"},{"id":18,"imapHost":"accdom.imap.lb.ad.intra:143","username":"CIS_ACCEPT@accept.deltalloyd.nl","password":"D3ltalloyd","enabled":false,"itemTypeId":"$t!-2_DEP_001_09_02_00v-1","bpmsAddress":"BPMS1","description":"Configuratie voor test -omgeving (inclusief MQ subscription)"},{"id":21,"imapHost":"aat.imap:12345","username":"DDCIS_AAT@test.nl","password":"wachtwoord","enabled":false,"itemTypeId":"$t!-2_DEP_001_09_02_00v-1","bpmsAddress":"AATBPMS","description":"Wordt gebruikt door DDCIS AAT TEST. Laten staan!"},{"id":32,"imapHost":"accdom.imap.lb.ad.intra:143","username":"sa_2898_schadebpmtest2@accept.deltalloyd.nl","password":"D3ltalloyd","enabled":false,"itemTypeId":"$t!-2_DEP_002_02_01_00v-1","bpmsAddress":"DSZPI","description":"Email adres Schade_BPM_Test2@accept.deltalloyd.nl wordt gebruikt voor DSZPI applicatie"},{"id":34,"imapHost":"accdom.imap.lb.ad.intra:143","username":"sa_2898_navigatortest@accept.deltalloyd.nl","password":"D3ltalloyd","enabled":false,"itemTypeId":"$t!-2_DEP_001_09_02_00v-1","bpmsAddress":"BPMS1","description":"Test account voor AAT test DDCIM (T-omgeving)"},{"id":56,"imapHost":"accdom.imap.lb.ad.intra:143","username":"sa_2898_schadebpmtest3@accept.deltalloyd.nl","password":"D3ltalloyd","enabled":false,"itemTypeId":"$t!-2_DEP_002_02_01_00v-1","bpmsAddress":"DSZPI","description":"Tweede (brand) email adres Schade_BPM_Test3@accept.deltalloyd.nl wordt gebruikt voor DSZPI applicatie"},{"id":66,"imapHost":"accdom.imap.lb.ad.intra:143","username":"sa_2898_schadebpmtest4@accept.deltalloyd.nl","password":"D3ltalloyd","enabled":false,"itemTypeId":"$t!-2_DEP_002_02_01_00v-1","bpmsAddress":"DSZPI","description":"Derde (PV) email adres Schade_BPM_Test4@accept.deltalloyd.nl wordt gebruikt voor DSZPI applicatie"},{"id":67,"imapHost":"accdom.imap.lb.ad.intra:143","username":"sa_2898_SBLPTestLISA@accept.deltalloyd.nl","password":"D3ltalloyd","enabled":false,"itemTypeId":"$t!-2_DEP_001_01_01_00v-1","bpmsAddress":"DLLLN","description":"Test mailbox voor LISA (AAPID 3160) (email SBLPTestLISA@accept.deltalloyd.nl)"},{"id":71,"imapHost":"accdom.imap.lb.ad.intra:143","username":"sa_2898_schadebpmtest5@accept.deltalloyd.nl","password":"D3ltalloyd","enabled":false,"itemTypeId":"$t!-2_DEP_002_01_01_00v-1","bpmsAddress":"DSZPI","description":"Vierde (schadezakelijk) email adres Schade_BPM_Test5@accept.deltalloyd.nl wordt gebruikt voor DSZPI applicatie"},{"id":163,"imapHost":"accdom.imap.lb.ad.intra:143","username":"sa_2898_schadebpmtest10@accept.deltalloyd.nl","password":"D3ltalloyd","enabled":false,"itemTypeId":"$t!-2_DEP_002_02_01_00v-1","bpmsAddress":"DSZPI","description":"(AGRO) E-mail adres Schade_BPM_Test10@accept.deltalloyd.nl wordt gebruikt voor DSZPI applicatie"},{"id":164,"imapHost":"accdom.imap.lb.ad.intra:143","username":"sa_2898_schadebpmtest11@accept.deltalloyd.nl","password":"D3ltalloyd","enabled":false,"itemTypeId":"$t!-2_DEP_002_02_01_00v-1","bpmsAddress":"DSZPI","description":"(Transportverzekeringen Claims) E-mail adres Schade_BPM_Test11@accept.deltalloyd.nl wordt gebruikt voor DSZPI applicatie"},{"id":165,"imapHost":"accdom.imap.lb.ad.intra:143","username":"sa_2898_schadebpmtest12@accept.deltalloyd.nl","password":"D3ltalloyd","enabled":false,"itemTypeId":"$t!-2_DEP_002_02_01_00v-1","bpmsAddress":"DSZPI","description":"(AVB Claims) E-mail adres Schade_BPM_Test12@accept.deltalloyd.nl wordt gebruikt voor DSZPI applicatie"},{"id":166,"imapHost":"accdom.imap.lb.ad.intra:143","username":"sa_2898_schadebpmtest13@accept.deltalloyd.nl","password":"D3ltalloyd","enabled":false,"itemTypeId":"$t!-2_DEP_002_02_01_00v-1","bpmsAddress":"DSZPI","description":"(Transport Claims) E-mail adres Schade_BPM_Test13@accept.deltalloyd.nl wordt gebruikt voor DSZPI applicatie"},{"id":168,"imapHost":"accdom.imap.lb.ad.intra:143","username":"sa_2898_schadebpmtest14@accept.deltalloyd.nl","password":"D3ltalloyd","enabled":false,"itemTypeId":"$t!-2_DEP_002_02_01_00v-1","bpmsAddress":"DSZPI","description":"(Garage Claims) E-mail adres Schade_BPM_Test14@accept.deltalloyd.nl wordt gebruikt voor DSZPI applicatie"},{"id":278,"imapHost":"Verwijder dit","username":"Tweede AAT test","password":"","enabled":false,"itemTypeId":"$t!-2_DEP_011_01_01_00v-1","bpmsAddress":"Tweede AAT test BPMS","description":""},{"id":279,"imapHost":"VERWIJDER DEZE REGEL","username":"VERWIJDER DEZE TEST REGEL","password":"","enabled":false,"itemTypeId":"$t!-2_DEP_001_09_02_00v-1","bpmsAddress":"AAT test BPMS adres","description":""}]'
+			>
+				<forward name="success" path="OK" />
+			</pipe>
+
+		</pipeline>
+	</adapter>
+</ibis>
