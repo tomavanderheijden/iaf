@@ -200,42 +200,57 @@
 	</xsl:template>
 	
 	<xsl:template match="Documentation">
-		<xsl:text disable-output-escaping="yes"><![CDATA[<span style="font-style: italic;">]]> --Note: </xsl:text>
-		<xsl:value-of select="." disable-output-escaping="yes"/>
-		<xsl:text disable-output-escaping="yes"><![CDATA[</span>]]></xsl:text>
+		<i>--Note: <xsl:value-of select="." disable-output-escaping="yes"/></i>
 	</xsl:template>
 
 	<xsl:template match="receiver">
-		<h3><xsl:value-of select="@name"/></h3>
-		<p>
-			Receives messages over the <i><xsl:value-of select="listener/@name"/></i> listener which is of type <i><xsl:value-of select="frank:getLastPartOfClassName(listener/@className)"/></i>.
+		<div>
+			<h3><xsl:value-of select="@name"/></h3>
+			<p>
+				Receives messages over the 
+				<xsl:if test="listener/@name">
+					<i><xsl:value-of select="listener/@name"/></i>
+				</xsl:if> 
+				listener which is of type 
+				<i><xsl:value-of select="frank:getLastPartOfClassName(listener/@className)"/></i>.
+			</p>
 			<ul>
 				<xsl:apply-templates select="listener"></xsl:apply-templates>
 				<xsl:if test="listener/Documentation">
 					<li><xsl:apply-templates select="listener/Documentation"></xsl:apply-templates></li> 
 				</xsl:if>
 			</ul>
-		</p>
-		<xsl:if test="messageLog">
-			<xsl:call-template name="formatReceiverJdbcComponents">
-				<xsl:with-param name="jdbcComponent" select="messageLog"/>
-			</xsl:call-template>
-		</xsl:if>
-		<xsl:if test="errorStorage">
-			<xsl:call-template name="formatReceiverJdbcComponents">
-				<xsl:with-param name="jdbcComponent" select="errorStorage"/>
-			</xsl:call-template>
-		</xsl:if>
-		<xsl:if test="Documentation">
-			<p>
-				<xsl:apply-templates select="Documentation"></xsl:apply-templates>
-			</p>
-		</xsl:if>
+			<xsl:if test="messageLog">
+				<xsl:call-template name="ReceiverJdbcComponents">
+					<xsl:with-param name="jdbcComponent" select="messageLog"/>
+				</xsl:call-template>
+			</xsl:if>
+			<xsl:if test="errorStorage">
+				<xsl:call-template name="ReceiverJdbcComponents">
+					<xsl:with-param name="jdbcComponent" select="errorStorage"/>
+				</xsl:call-template>
+			</xsl:if>
+			<xsl:if test="Documentation">
+				<p>
+					<xsl:apply-templates select="Documentation"></xsl:apply-templates>
+				</p>
+			</xsl:if>
+		</div>
 	</xsl:template>
 	
-	<xsl:template name="formatReceiverJdbcComponents">
+	<xsl:template name="ReceiverJdbcComponents">
 		<xsl:param name="jdbcComponent"/>
-		<p>Has <xsl:value-of select="local-name($jdbcComponent)"/> of type <i><xsl:value-of select="frank:getLastPartOfClassName($jdbcComponent/@className)"/></i> writing to slotId <i><xsl:value-of select="$jdbcComponent/@slotId"/></i> <xsl:choose><xsl:when test="$jdbcComponent/@jmsRealm"> at jmsRealm <i><xsl:value-of select="$jdbcComponent/@jmsRealm"/></i></xsl:when><xsl:otherwise> at datasourceName <i><xsl:value-of select="$jdbcComponent/@datasourceName"/></i></xsl:otherwise></xsl:choose>.</p>
+		<p>Has 
+		    <xsl:value-of select="local-name($jdbcComponent)"/> 
+		    of type 
+			<i><xsl:value-of select="frank:getLastPartOfClassName($jdbcComponent/@className)"/></i> 
+			writing to slotId 
+			<i><xsl:value-of select="$jdbcComponent/@slotId"/></i> 
+			<xsl:choose>
+				<xsl:when test="$jdbcComponent/@jmsRealm"> at jmsRealm <i><xsl:value-of select="$jdbcComponent/@jmsRealm"/></i></xsl:when>
+				<xsl:otherwise> at datasourceName <i><xsl:value-of select="$jdbcComponent/@datasourceName"/></i></xsl:otherwise>
+			</xsl:choose>
+		.</p>
 	</xsl:template>
 
 	<xsl:template name="documents">
