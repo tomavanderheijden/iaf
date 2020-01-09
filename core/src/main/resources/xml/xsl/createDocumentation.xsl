@@ -38,6 +38,9 @@
 		            	text-align: center;
 		            	margin: 15px auto 45px;
 		            }
+		            .flow-step {
+		            	margin: 15px 0px;
+		            }
 				</style>
 			</head>
 			<body>
@@ -84,16 +87,13 @@
 				<h2>Flows</h2>
 				<div class="chapter">
 					<h3>Flow 1</h3>
-					<ol>
-						<li>
+					<ol class="flow">
+						<li class="flow-step">
 							<xsl:text>Receives message from </xsl:text>
 							<xsl:value-of select="adapter/receiver[1]/listener/@className"/>
 							<xsl:if test="adapter/receiver[1]/Documentation">
 								<xsl:apply-templates select="adapter/receiver[1]/Documentation"></xsl:apply-templates>
 							</xsl:if>
-						</li>
-						<li>
-							<xsl:value-of select="adapter/pipeline/@firstPipe"/>
 						</li>
 						<xsl:call-template name="forwards">
 							<xsl:with-param name="forwardPath">
@@ -187,14 +187,24 @@
 	<xsl:template name="forwards">
 		<xsl:param name="forwardPath"/>
 		<xsl:if test="adapter/pipeline/pipe[@name=$forwardPath]/forward[1]/@path">
-			<li>
-				<xsl:value-of select="adapter/pipeline/pipe[@name=$forwardPath]/forward[1]/@path"/>
-				<xsl:if test="adapter/pipeline/pipe[@name=$forwardPath]/Documentation">
-					<xsl:apply-templates select="adapter/pipeline/pipe[@name=$forwardPath]/Documentation"></xsl:apply-templates>
+			<xsl:variable name="pipe" select="adapter/pipeline/pipe[@name=$forwardPath]"/>
+			<li class="flow-step">
+				<xsl:value-of select="$pipe/@name"/> : <xsl:value-of select="frank:getLastPartOfClassName($pipe/@className)"/>
+				<ul class="flow-step-description">
+					<xsl:if test="$pipe/@getInputFromSessionKey">
+						<li>Reads input from session key <i><xsl:value-of select="$pipe/@getInputFromSessionKey"/></i></li>
+					</xsl:if>
+					<xsl:apply-templates select="$pipe"></xsl:apply-templates>
+					<xsl:if test="$pipe/@storeResultInSessionKey">
+						<li>Stores output in session key <i><xsl:value-of select="$pipe/@storeResultInSessionKey"/></i></li>
+					</xsl:if>
+				</ul>
+				<xsl:if test="$pipe/Documentation">
+					<xsl:apply-templates select="$pipe/Documentation"></xsl:apply-templates>
 				</xsl:if>
 			</li>
 			<xsl:call-template name="forwards">
-				<xsl:with-param name="forwardPath" select="adapter/pipeline/pipe[@name=$forwardPath]/forward[1]/@path"/>
+				<xsl:with-param name="forwardPath" select="$pipe/forward[1]/@path"/>
 			</xsl:call-template>
 		</xsl:if>
 	</xsl:template>
