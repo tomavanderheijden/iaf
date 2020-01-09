@@ -3,7 +3,8 @@
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	version="2.0">
 	
-	<xsl:include href="listeners/index.xsl"/>
-	<xsl:include href="pipes/index.xsl"/>
+	<xsl:include href="ForEachChildElementPipe.xsl"/>
+	<xsl:include href="XmlWellFormedChecker.xsl"/>
+	<xsl:include href="XsltPipe.xsl"/>
 	
 </xsl:stylesheet>
